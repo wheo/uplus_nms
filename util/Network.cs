@@ -49,12 +49,14 @@ namespace uplus_nms.util
 					byte[] data = this._payload;
 
 					NetworkStream ns = client.GetStream();
-					ns.Write(data, 0, data.Length);
+					ns.Write(data, 0, data.Length-1);
 
+					/*
 					byte[] recvbuff = new Byte[256];
 					Int32 recvLength = ns.Read(recvbuff, 0, recvbuff.Length);
 
 					MessageBox.Show(Encoding.UTF8.GetString(recvbuff), "Recv", MessageBoxButton.OK);
+					*/
 
 					// Close everything
 					ns.Close();

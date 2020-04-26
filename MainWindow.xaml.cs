@@ -25,6 +25,7 @@ namespace uplus_nms
 	public partial class MainWindow : Window
 	{
 		private ArrayList m_logList;
+		private int _event_id;
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -82,6 +83,7 @@ namespace uplus_nms
 				vo.Log listitem = new vo.Log();
 				m_logList.Add(listitem.GetList());
 			}
+			_event_id = 1;
 		}
 
 		private void BtnCue_Click(object sender, RoutedEventArgs e)
@@ -96,7 +98,87 @@ namespace uplus_nms
 			{
 				case "BtnCue_1":
 
-					Byte[] payload = File.ReadAllBytes(@"message/spliceStart_immediate.bin");
+					//Byte[] payload = File.ReadAllBytes(@"message/spliceStart_immediate.bin");
+					
+					Byte[] payload = new Byte[30];					
+					payload[0] = 0xFF;					
+					payload[1] = 0xFF;
+					//message size
+					payload[2] = 0x00;
+					payload[3] = 0x1E;
+					//protocol_version
+					payload[4] = 0x00;
+					//AS_index
+					payload[5] = 0x00;
+					//message_number
+					payload[6] = 0x00;
+					//DPI_PID_index
+					payload[7] = 0x00;
+					payload[8] = 0x00;
+					//SCTE35_protocol_version
+					payload[9] = 0x00;
+					//timestamp = 0x00;
+					payload[10] = 0x00;
+					//num_ops
+					payload[11] = 0x01;
+					//opID 0x0101 splice_request_data()
+					payload[12] = 0x01;
+					payload[13] = 0x01;
+					//data length 0E = 14
+					payload[14] = 0x00;
+					payload[15] = 0x0e;
+
+					// splice_insert_type
+					int splice_insert_type = 0;
+					if ( cbEventType_1.Text == "Reserve")
+					{
+						splice_insert_type = 0;
+
+					} else  if (cbEventType_1.Text == "Start Normal")
+					{
+						splice_insert_type = 1;
+					} else if (cbEventType_1.Text == "Start Immediate")
+					{
+						splice_insert_type = 2;
+					} else if (cbEventType_1.Text == "End Normal")
+					{
+						splice_insert_type = 3;
+					} else if (cbEventType_1.Text == "End Immediate")
+					{
+						splice_insert_type = 4;
+					} else if ( cbEventType_1.Text == "Cancel")
+					{
+						splice_insert_type = 5;
+					}
+
+					payload[16] = (byte)splice_insert_type;
+					//splice event id : 0x1234
+					payload[17] = (byte)(_event_id >> 24);
+					payload[18] = (byte)(_event_id >> 16);
+					payload[19] = (byte)(_event_id >> 8);
+					payload[20] = (byte)_event_id;
+					_event_id = _event_id + 4;
+
+					// unique program id : 0x4567
+					int uid = Convert.ToInt16(TbUnqProgramID.Text);
+					payload[21] = (byte)(uid >> 8);
+					payload[22] = (byte)uid;
+					// pre_roll_time 
+					int pre_roll_time = Convert.ToInt16(TbPreroolTime.Text);
+					payload[23] = (byte)(pre_roll_time >> 8);
+					payload[24] = (byte)pre_roll_time;
+					// break duration
+					int break_duration = Convert.ToInt16(TbBreakDuration.Text);
+					payload[25] = (byte)(break_duration >> 8);
+					payload[26] = (byte)break_duration;
+					//avail_num
+					payload[27] = 0x01;
+					//avais_expected
+					payload[28] = 0x02;
+					//auto return flag
+					payload[29] = 0x01;
+
+
 					//tcp
 					util.Network conn = new util.Network();
 					conn.SetConnection(TbIpaddr.Text, Convert.ToInt32(TbPort.Text));					
@@ -135,7 +217,7 @@ namespace uplus_nms
 					*/
 					break;                
 			}
-		}        
+		}
 	  
 		private void ContextMenu_Click(object sender, RoutedEventArgs e)
 		{
