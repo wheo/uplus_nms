@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 
 namespace uplus_nms.common
 {
@@ -24,6 +25,12 @@ namespace uplus_nms.common
 		public static String GetCurrnetDatetime()
 		{
 			return DateTime.Now.ToString("yyyy-mm-dd hh:mm:ss");
+		}
+
+		private static readonly Regex _regex = new Regex("[^0-9.-]+"); //regex that matches disallowed text
+		private static bool IsTextAllowed(string text)
+		{
+			return !_regex.IsMatch(text);
 		}
 	}
 }

@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace uplus_nms
 {
@@ -54,7 +55,8 @@ namespace uplus_nms
 
 					TbIpaddr.Text = jsonConfig.ipAddr;
 					TbPort.Text = jsonConfig.port.ToString();
-					TbEventID.Text = jsonConfig.eventId.ToString();
+					//TbEventID.Text = jsonConfig.eventId.ToString();
+					_event_id = jsonConfig.eventId;
 					TbUnqProgramID.Text = jsonConfig.uniquePid.ToString();
 					TbPreroolTime.Text = jsonConfig.preRollTime.ToString();
 					TbBreakDuration.Text = jsonConfig.breakDuration.ToString();
@@ -72,8 +74,7 @@ namespace uplus_nms
 			}
 
 			return true;
-		}
-		
+		}		
 
 		private void InitializeOthers()
 		{
@@ -83,7 +84,7 @@ namespace uplus_nms
 				vo.Log listitem = new vo.Log();
 				m_logList.Add(listitem.GetList());
 			}
-			_event_id = 1;
+			//_event_id = 1;
 		}
 
 		private void BtnCue_Click(object sender, RoutedEventArgs e)
@@ -137,16 +138,20 @@ namespace uplus_nms
 					} else  if (cbEventType_1.Text == "Start Normal")
 					{
 						splice_insert_type = 1;
-					} else if (cbEventType_1.Text == "Start Immediate")
+					} 
+					else if (cbEventType_1.Text == "Start Immediate")
 					{
 						splice_insert_type = 2;
-					} else if (cbEventType_1.Text == "End Normal")
+					} 
+					else if (cbEventType_1.Text == "End Normal")
 					{
 						splice_insert_type = 3;
-					} else if (cbEventType_1.Text == "End Immediate")
+					} 
+					else if (cbEventType_1.Text == "End Immediate")
 					{
 						splice_insert_type = 4;
-					} else if ( cbEventType_1.Text == "Cancel")
+					} 
+					else if ( cbEventType_1.Text == "Cancel")
 					{
 						splice_insert_type = 5;
 					}
@@ -171,13 +176,12 @@ namespace uplus_nms
 					int break_duration = Convert.ToInt16(TbBreakDuration.Text);
 					payload[25] = (byte)(break_duration >> 8);
 					payload[26] = (byte)break_duration;
-					//avail_num
+					//avail_num //fixed
 					payload[27] = 0x01;
-					//avais_expected
+					//avais_expected //fixed
 					payload[28] = 0x02;
-					//auto return flag
+					//auto return flag //fixed
 					payload[29] = 0x01;
-
 
 					//tcp
 					util.Network conn = new util.Network();
@@ -196,10 +200,10 @@ namespace uplus_nms
 					log.ipAddress = TbIpaddr.Text;
 					log.port = Convert.ToInt32(TbPort.Text);
 					log.eventType = cbEventType_1.Text;
-					log.eventId = TbEventID.Text;
+					log.eventId = _event_id.ToString();
 					log.uniquePid = TbUnqProgramID.Text;
 					log.prerollTime = TbPreroolTime.Text;
-					log.breakDuration = TbBreakDuration.Text;					
+					log.breakDuration = TbBreakDuration.Text;
 
 					logitem = (List<vo.Log>)m_logList[0];
 					logitem.Add(log);
@@ -207,6 +211,12 @@ namespace uplus_nms
 					LvLog_1.ItemsSource = null;
 					LvLog_1.ItemsSource = logitem;                    
 					LvLog_1.ScrollIntoView(LvLog_1.Items[LvLog_1.Items.Count - 1]);
+
+					vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
+					jsonConfig.eventId = _event_id;
+					String jsonString = JsonSerializer.Serialize(jsonConfig);
+					File.WriteAllText(jsonConfig.configFileName, jsonString);
+
 					break;
 				case "BtnOther":
 					/*
@@ -222,6 +232,12 @@ namespace uplus_nms
 		private void ContextMenu_Click(object sender, RoutedEventArgs e)
 		{
 			MessageBox.Show("click");
+		}
+
+		private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+		{
+			Regex regex = new Regex("[^0-9]+");
+			e.Handled = regex.IsMatch(e.Text);
 		}
 
 		private void TbIpaddr_TextChanged(object sender, TextChangedEventArgs e)
@@ -244,11 +260,13 @@ namespace uplus_nms
 
 		private void TbEventID_TextChanged(object sender, TextChangedEventArgs e)
 		{
+			/*
 			var thisTextBox = sender as System.Windows.Controls.TextBox;
 			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
 			jsonConfig.eventId = Convert.ToInt32(thisTextBox.Text);
 			String jsonString = JsonSerializer.Serialize(jsonConfig);
 			File.WriteAllText(jsonConfig.configFileName, jsonString);
+			*/
 		}
 
 		private void TbUnqProgramID_TextChanged(object sender, TextChangedEventArgs e)
