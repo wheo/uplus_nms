@@ -32,7 +32,7 @@ namespace uplus_nms
 			InitializeComponent();
 			LoadConfig();
 			InitializeOthers();
-		}
+		}		
 
 		private bool LoadConfig()
 		{
@@ -232,13 +232,7 @@ namespace uplus_nms
 		private void ContextMenu_Click(object sender, RoutedEventArgs e)
 		{
 			MessageBox.Show("click");
-		}
-
-		private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
-		{
-			Regex regex = new Regex("[^0-9]+");
-			e.Handled = regex.IsMatch(e.Text);
-		}
+		}		
 
 		private void TbIpaddr_TextChanged(object sender, TextChangedEventArgs e)
 		{
@@ -252,6 +246,18 @@ namespace uplus_nms
 		private void TbPort_TextChanged(object sender, TextChangedEventArgs e)
 		{
 			var thisTextBox = sender as System.Windows.Controls.TextBox;
+
+			if ( String.IsNullOrEmpty(thisTextBox.Text))
+			{
+				thisTextBox.Text = "0";
+			}
+
+			if (Regex.IsMatch(thisTextBox.Text, "[^0-9]"))
+			{
+				MessageBox.Show("숫자만 넣을 수 있습니다.", "경고", MessageBoxButton.OK);
+				thisTextBox.Text = thisTextBox.Text.Remove(thisTextBox.Text.Length - 1);
+			}
+
 			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
 			jsonConfig.port = Convert.ToInt32(thisTextBox.Text);
 			String jsonString = JsonSerializer.Serialize(jsonConfig);
@@ -272,6 +278,18 @@ namespace uplus_nms
 		private void TbUnqProgramID_TextChanged(object sender, TextChangedEventArgs e)
 		{
 			var thisTextBox = sender as System.Windows.Controls.TextBox;
+
+			if (String.IsNullOrEmpty(thisTextBox.Text))
+			{
+				thisTextBox.Text = "0";
+			}
+
+			if (Regex.IsMatch(thisTextBox.Text, "[^0-9]"))
+			{
+				MessageBox.Show("숫자만 넣을 수 있습니다.", "경고", MessageBoxButton.OK);
+				thisTextBox.Text = thisTextBox.Text.Remove(thisTextBox.Text.Length - 1);
+			}
+
 			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
 			jsonConfig.uniquePid = Convert.ToInt32(thisTextBox.Text);
 			String jsonString = JsonSerializer.Serialize(jsonConfig);
@@ -281,6 +299,17 @@ namespace uplus_nms
 		private void TbPreroolTime_TextChanged(object sender, TextChangedEventArgs e)
 		{
 			var thisTextBox = sender as System.Windows.Controls.TextBox;
+
+			if (String.IsNullOrEmpty(thisTextBox.Text))
+			{
+				thisTextBox.Text = "0";
+			}
+
+			if (Regex.IsMatch(thisTextBox.Text, "[^0-9]"))
+			{
+				MessageBox.Show("숫자만 넣을 수 있습니다.", "경고", MessageBoxButton.OK);
+				thisTextBox.Text = thisTextBox.Text.Remove(thisTextBox.Text.Length - 1);
+			}
 			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
 			jsonConfig.preRollTime = Convert.ToInt32(thisTextBox.Text);
 			String jsonString = JsonSerializer.Serialize(jsonConfig);
@@ -290,6 +319,17 @@ namespace uplus_nms
 		private void TbBreakDuration_TextChanged(object sender, TextChangedEventArgs e)
 		{
 			var thisTextBox = sender as System.Windows.Controls.TextBox;
+
+			if (String.IsNullOrEmpty(thisTextBox.Text))
+			{
+				thisTextBox.Text = "0";
+			}
+
+			if (Regex.IsMatch(thisTextBox.Text, "[^0-9]"))
+			{
+				MessageBox.Show("숫자만 넣을 수 있습니다.", "경고", MessageBoxButton.OK);
+				thisTextBox.Text = thisTextBox.Text.Remove(thisTextBox.Text.Length - 1);
+			}
 			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
 			jsonConfig.breakDuration = Convert.ToInt32(thisTextBox.Text);
 			String jsonString = JsonSerializer.Serialize(jsonConfig);

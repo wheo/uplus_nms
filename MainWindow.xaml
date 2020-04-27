@@ -68,11 +68,11 @@
         </ComboBox>
         <TextBlock Text="Server Info" FontSize="14" FontWeight="Bold" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <TextBox x:Name="TbIpaddr" Grid.Row="3" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbIpaddr_TextChanged"/>
-        <TextBox x:Name="TbPort" Grid.Row="3" Grid.Column="2" Margin="5,5,15,5" TextChanged="TbPort_TextChanged" PreviewTextInput="NumberValidationTextBox" />
+        <TextBox x:Name="TbPort" Grid.Row="3" Grid.Column="2" Margin="5,5,15,5" TextChanged="TbPort_TextChanged" />
         <TextBlock Text="Event ID" FontSize="14" FontWeight="Bold" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0" Visibility="Hidden"/>
         <TextBox x:Name="TbEventID" Grid.Row="4" Grid.Column="1" Margin="5,5,5,5" Grid.ColumnSpan="2" TextChanged="TbEventID_TextChanged" Visibility="Hidden"/>
         <TextBlock Text="Unique Program ID" FontSize="14" FontWeight="Bold" Grid.Row="5" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <TextBox x:Name="TbUnqProgramID" Grid.Row="5" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbUnqProgramID_TextChanged"></TextBox>
+        <TextBox x:Name="TbUnqProgramID" Grid.Row="5" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbUnqProgramID_TextChanged"></TextBox>        
         <TextBlock Text="Preroll Time" FontSize="14" FontWeight="Bold" Grid.Row="6" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <TextBox x:Name="TbPreroolTime" Grid.Row="6" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbPreroolTime_TextChanged"></TextBox>
         <TextBlock Text="Break duration" FontSize="14" FontWeight="Bold" Grid.Row="7" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>

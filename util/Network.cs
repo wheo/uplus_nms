@@ -49,7 +49,7 @@ namespace uplus_nms.util
 					byte[] data = this._payload;
 
 					NetworkStream ns = client.GetStream();
-					ns.Write(data, 0, data.Length-1);
+					ns.Write(data, 0, data.Length);
 
 					/*
 					byte[] recvbuff = new Byte[256];
