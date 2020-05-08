@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
-namespace uplus_nms.common
+namespace scte_104_inserter.common
 {
 	class Util
 	{

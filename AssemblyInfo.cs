@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Runtime.InteropServices;
 
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.None, //where theme specific resource dictionaries are located
@@ -8,3 +9,6 @@ using System.Windows;
                                               //(used if a resource is not found in the page,
                                               // app, or any theme specific resource dictionaries)
 )]
+
+//log4net 설정 추가 wheo
+[assembly: log4net.Config.XmlConfigurator(ConfigFile ="log4net.config")]

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,7 +19,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace uplus_nms
+using log4net;
+
+using DeckLinkAPI;
+using scte104_cue_inserter.util;
+
+namespace scte_104_inserter
 {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
@@ -27,15 +33,102 @@ namespace uplus_nms
 	{
 		private ArrayList m_logList;
 		private int _event_id;
+
+		//파일당 1개 명시?? (확실한가?)
+		private static readonly ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+		//decklink member
+
+		struct DisplayModeEntry
+		{
+			public IDeckLinkDisplayMode displayMode;
+
+			public DisplayModeEntry(IDeckLinkDisplayMode displayMode)
+			{
+				this.displayMode = displayMode;
+			}
+
+			public override string ToString()
+			{
+				string str;
+
+				displayMode.GetName(out str);
+
+				return str;
+			}
+		}
+
+		/// <summary>
+		/// Used for putting other object types into combo boxes.
+		/// </summary>
+		struct StringObjectPair<T>
+		{
+			public string name;
+			public T value;
+
+			public StringObjectPair(string name, T value)
+			{
+				this.name = name;
+				this.value = value;
+			}
+
+			public override string ToString()
+			{
+				return name;
+			}
+		}
+
+		const int kStillsPreviewHorizontalSpacing = 10;
+		const int kStillsPreviewVerticalSpacing = 10;
+		const int kInputInvalidFrameTimeout = 60;
+
+		delegate void DirectoryPathStringDelegate(string path);
+		delegate void ControlEnableDelegate(Control control, bool enable);
+
+		private IReadOnlyList<StringObjectPair<_BMDPixelFormat>> kPixelFormatList = new List<StringObjectPair<_BMDPixelFormat>>
+		{
+			new StringObjectPair<_BMDPixelFormat>("8-Bit YUV", _BMDPixelFormat.bmdFormat8BitYUV),
+			new StringObjectPair<_BMDPixelFormat>("10-Bit YUV", _BMDPixelFormat.bmdFormat10BitYUV),
+			new StringObjectPair<_BMDPixelFormat>("8-Bit ARGB", _BMDPixelFormat.bmdFormat8BitARGB),
+			new StringObjectPair<_BMDPixelFormat>("8-Bit BGRA", _BMDPixelFormat.bmdFormat8BitBGRA),
+			new StringObjectPair<_BMDPixelFormat>("10-Bit RGB", _BMDPixelFormat.bmdFormat10BitRGB),
+			new StringObjectPair<_BMDPixelFormat>("12-Bit RGB", _BMDPixelFormat.bmdFormat12BitRGB),
+			new StringObjectPair<_BMDPixelFormat>("12-Bit RGB LE", _BMDPixelFormat.bmdFormat12BitRGBLE),
+			new StringObjectPair<_BMDPixelFormat>("10-Bit RGBX", _BMDPixelFormat.bmdFormat10BitRGBX),
+			new StringObjectPair<_BMDPixelFormat>("10-Bit RGBX LE", _BMDPixelFormat.bmdFormat10BitRGBXLE)
+		};
+
+		private DeckLinkDeviceDiscovery m_deckLinkDiscovery;
+		private Bgra32FrameConverter m_frameConverter;
+		private DeckLinkInputDevice m_selectedCaptureDevice;
+		private DeckLinkOutputDevice m_selectedPlaybackDevice;
+
+		private int m_captureFrameIntervalCount = 0;
+		private int m_captureStillsCount = 0;
+		private int m_invalidFrameTimeout = 0;
+
+		private string m_selectedFolder;
+		//private ImageList m_folderImageList;
+
+		private CountdownEvent m_captureCountdown;
+		private CancellationTokenSource m_captureCancel;
+		private CancellationTokenSource m_captureFileExists;
+		private CancellationTokenSource m_captureDeviceRemovedCancel;
+		private CancellationTokenSource m_captureInvalidCancel;
+
+		private CancellationTokenSource m_playbackCancel;
+		private CancellationTokenSource m_playbackDeviceRemovedCancel;
+
 		public MainWindow()
 		{
 			InitializeComponent();
 			LoadConfig();
 			InitializeOthers();
-		}		
+			logger.Info("Program Started...");
+		}
 
 		private bool LoadConfig()
-		{
+		{			
 			// config.json 읽기
 			String jsonString;
 			try
@@ -68,9 +161,9 @@ namespace uplus_nms
 					*/					
 				}
 			}
-			catch (Exception e)
+			catch (FileLoadException e)
 			{
-
+				MessageBox.Show(e.ToString()+"\n\n프로그램을 종료합니다.", "경고", MessageBoxButton.OK);
 			}
 
 			return true;
@@ -81,10 +174,103 @@ namespace uplus_nms
 			m_logList = new ArrayList();
 			for (int i=0;i<4;i++)
 			{
-				vo.Log listitem = new vo.Log();
+				vo.LvLog listitem = new vo.LvLog();
 				m_logList.Add(listitem.GetList());
 			}
 			//_event_id = 1;
+
+			//decklink setup
+			m_deckLinkDiscovery = new DeckLinkDeviceDiscovery();
+
+			m_frameConverter = new Bgra32FrameConverter();
+		}
+		
+		private Byte[] MakePayload()
+		{
+			Byte[] payload = new Byte[30];
+
+			payload[0] = 0xFF;
+			payload[1] = 0xFF;
+			//message size
+			payload[2] = 0x00;
+			payload[3] = 0x1E;
+			//protocol_version
+			payload[4] = 0x00;
+			//AS_index
+			payload[5] = 0x00;
+			//message_number
+			payload[6] = 0x00;
+			//DPI_PID_index
+			payload[7] = 0x00;
+			payload[8] = 0x00;
+			//SCTE35_protocol_version
+			payload[9] = 0x00;
+			//timestamp = 0x00;
+			payload[10] = 0x00;
+			//num_ops
+			payload[11] = 0x01;
+			//opID 0x0101 splice_request_data()
+			payload[12] = 0x01;
+			payload[13] = 0x01;
+			//data length 0E = 14
+			payload[14] = 0x00;
+			payload[15] = 0x0e;
+
+			// splice_insert_type
+			int splice_insert_type = 0;
+			if (cbEventType_1.Text == "Reserve")
+			{
+				splice_insert_type = 0;
+
+			}
+			else if (cbEventType_1.Text == "Start Normal")
+			{
+				splice_insert_type = 1;
+			}
+			else if (cbEventType_1.Text == "Start Immediate")
+			{
+				splice_insert_type = 2;
+			}
+			else if (cbEventType_1.Text == "End Normal")
+			{
+				splice_insert_type = 3;
+			}
+			else if (cbEventType_1.Text == "End Immediate")
+			{
+				splice_insert_type = 4;
+			}
+			else if (cbEventType_1.Text == "Cancel")
+			{
+				splice_insert_type = 5;
+			}
+
+			payload[16] = (byte)splice_insert_type;
+			//splice event id : 0x1234
+			payload[17] = (byte)(_event_id >> 24);
+			payload[18] = (byte)(_event_id >> 16);
+			payload[19] = (byte)(_event_id >> 8);
+			payload[20] = (byte)_event_id;
+
+			// unique program id : 0x4567
+			int uid = Convert.ToInt16(TbUnqProgramID.Text);
+			payload[21] = (byte)(uid >> 8);
+			payload[22] = (byte)uid;
+			// pre_roll_time 
+			int pre_roll_time = Convert.ToInt16(TbPreroolTime.Text);
+			payload[23] = (byte)(pre_roll_time >> 8);
+			payload[24] = (byte)pre_roll_time;
+			// break duration
+			int break_duration = Convert.ToInt16(TbBreakDuration.Text);
+			payload[25] = (byte)(break_duration >> 8);
+			payload[26] = (byte)break_duration;
+			//avail_num //fixed
+			payload[27] = 0x01;
+			//avais_expected //fixed
+			payload[28] = 0x02;
+			//auto return flag //fixed
+			payload[29] = 0x01;
+
+			return payload;
 		}
 
 		private void BtnCue_Click(object sender, RoutedEventArgs e)
@@ -92,96 +278,15 @@ namespace uplus_nms
 			var button = sender as Button;
 			String btnName = button.Name;
 
-			List<vo.Log> logitem;
-			vo.Log log = new vo.Log();
+			List<vo.LvLog> lvLogItem;
+			vo.LvLog lvLog = new vo.LvLog();
 
 			switch (btnName)
 			{
 				case "BtnCue_1":
-
-					//Byte[] payload = File.ReadAllBytes(@"message/spliceStart_immediate.bin");
-					
-					Byte[] payload = new Byte[30];					
-					payload[0] = 0xFF;					
-					payload[1] = 0xFF;
-					//message size
-					payload[2] = 0x00;
-					payload[3] = 0x1E;
-					//protocol_version
-					payload[4] = 0x00;
-					//AS_index
-					payload[5] = 0x00;
-					//message_number
-					payload[6] = 0x00;
-					//DPI_PID_index
-					payload[7] = 0x00;
-					payload[8] = 0x00;
-					//SCTE35_protocol_version
-					payload[9] = 0x00;
-					//timestamp = 0x00;
-					payload[10] = 0x00;
-					//num_ops
-					payload[11] = 0x01;
-					//opID 0x0101 splice_request_data()
-					payload[12] = 0x01;
-					payload[13] = 0x01;
-					//data length 0E = 14
-					payload[14] = 0x00;
-					payload[15] = 0x0e;
-
-					// splice_insert_type
-					int splice_insert_type = 0;
-					if ( cbEventType_1.Text == "Reserve")
-					{
-						splice_insert_type = 0;
-
-					} else  if (cbEventType_1.Text == "Start Normal")
-					{
-						splice_insert_type = 1;
-					} 
-					else if (cbEventType_1.Text == "Start Immediate")
-					{
-						splice_insert_type = 2;
-					} 
-					else if (cbEventType_1.Text == "End Normal")
-					{
-						splice_insert_type = 3;
-					} 
-					else if (cbEventType_1.Text == "End Immediate")
-					{
-						splice_insert_type = 4;
-					} 
-					else if ( cbEventType_1.Text == "Cancel")
-					{
-						splice_insert_type = 5;
-					}
-
-					payload[16] = (byte)splice_insert_type;
-					//splice event id : 0x1234
-					payload[17] = (byte)(_event_id >> 24);
-					payload[18] = (byte)(_event_id >> 16);
-					payload[19] = (byte)(_event_id >> 8);
-					payload[20] = (byte)_event_id;
 					_event_id = _event_id + 4;
-
-					// unique program id : 0x4567
-					int uid = Convert.ToInt16(TbUnqProgramID.Text);
-					payload[21] = (byte)(uid >> 8);
-					payload[22] = (byte)uid;
-					// pre_roll_time 
-					int pre_roll_time = Convert.ToInt16(TbPreroolTime.Text);
-					payload[23] = (byte)(pre_roll_time >> 8);
-					payload[24] = (byte)pre_roll_time;
-					// break duration
-					int break_duration = Convert.ToInt16(TbBreakDuration.Text);
-					payload[25] = (byte)(break_duration >> 8);
-					payload[26] = (byte)break_duration;
-					//avail_num //fixed
-					payload[27] = 0x01;
-					//avais_expected //fixed
-					payload[28] = 0x02;
-					//auto return flag //fixed
-					payload[29] = 0x01;
+					//Byte[] payload = File.ReadAllBytes(@"message/spliceStart_immediate.bin");
+					Byte[] payload = MakePayload();
 
 					//tcp
 					util.Network conn = new util.Network();
@@ -189,34 +294,37 @@ namespace uplus_nms
 					conn.SetPayload(payload);
 					if (conn.Connect())
 					{
-						log.status = "Completed";
+						lvLog.status = "Completed";
 					} else
 					{
-						log.status = "Error";
+						lvLog.status = "Error";
 					}
 
-					log.eventTime = DateTime.Now;
-					//log.ipAddress = common.Util.GetLocalIpAddress();
-					log.ipAddress = TbIpaddr.Text;
-					log.port = Convert.ToInt32(TbPort.Text);
-					log.eventType = cbEventType_1.Text;
-					log.eventId = _event_id.ToString();
-					log.uniquePid = TbUnqProgramID.Text;
-					log.prerollTime = TbPreroolTime.Text;
-					log.breakDuration = TbBreakDuration.Text;
+					Clock clk = new Clock();
 
-					logitem = (List<vo.Log>)m_logList[0];
-					logitem.Add(log);
+					//lvLog.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+					lvLog.eventTime = clk.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+					//log.ipAddress = common.Util.GetLocalIpAddress();
+					lvLog.ipAddress = TbIpaddr.Text;
+					lvLog.port = Convert.ToInt32(TbPort.Text);
+					lvLog.eventType = cbEventType_1.Text;
+					lvLog.eventId = _event_id.ToString();
+					lvLog.uniquePid = TbUnqProgramID.Text;
+					lvLog.prerollTime = TbPreroolTime.Text;
+					lvLog.breakDuration = TbBreakDuration.Text;
+
+					lvLogItem = (List<vo.LvLog>)m_logList[0];
+					lvLogItem.Add(lvLog);
+					lvLog.WriteLvLog();
 
 					LvLog_1.ItemsSource = null;
-					LvLog_1.ItemsSource = logitem;                    
+					LvLog_1.ItemsSource = lvLogItem;
 					LvLog_1.ScrollIntoView(LvLog_1.Items[LvLog_1.Items.Count - 1]);
 
 					vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
 					jsonConfig.eventId = _event_id;
 					String jsonString = JsonSerializer.Serialize(jsonConfig);
 					File.WriteAllText(jsonConfig.configFileName, jsonString);
-
 					break;
 				case "BtnOther":
 					/*

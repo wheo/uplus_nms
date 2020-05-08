@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace uplus_nms.vo
+namespace scte_104_inserter.vo
 {
 	class JsonConfig
 	{

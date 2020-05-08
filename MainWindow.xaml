@@ -1,4 +1,4 @@
-﻿<Window x:Class="uplus_nms.MainWindow"
+﻿<Window x:Class="scte_104_inserter.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -73,9 +73,9 @@
         <TextBox x:Name="TbEventID" Grid.Row="4" Grid.Column="1" Margin="5,5,5,5" Grid.ColumnSpan="2" TextChanged="TbEventID_TextChanged" Visibility="Hidden"/>
         <TextBlock Text="Unique Program ID" FontSize="14" FontWeight="Bold" Grid.Row="5" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <TextBox x:Name="TbUnqProgramID" Grid.Row="5" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbUnqProgramID_TextChanged"></TextBox>        
-        <TextBlock Text="Preroll Time" FontSize="14" FontWeight="Bold" Grid.Row="6" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock Text="Preroll Time (1/1000 sec)" FontSize="14" FontWeight="Bold" Grid.Row="6" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <TextBox x:Name="TbPreroolTime" Grid.Row="6" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbPreroolTime_TextChanged"></TextBox>
-        <TextBlock Text="Break duration" FontSize="14" FontWeight="Bold" Grid.Row="7" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock Text="Break duration (1/10 sec)" FontSize="14" FontWeight="Bold" Grid.Row="7" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <TextBox x:Name="TbBreakDuration" Grid.Row="7" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbBreakDuration_TextChanged"></TextBox>
 
         <ListView x:Name="LvLog_1" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Margin="20,5,20,5" MaxHeight="450" Grid.RowSpan="1" MinHeight="450" MinWidth="900" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Width="900" HorizontalAlignment="Stretch">
@@ -83,9 +83,9 @@
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 </Style>
-            </ListView.ItemContainerStyle>
+            </ListView.ItemContainerStyle>            
             <ListView.View>
-                <GridView AllowsColumnReorder="True" ColumnHeaderToolTip="EventLog Information">
+                <GridView AllowsColumnReorder="False" ColumnHeaderToolTip="EventLog Information">
                     <GridViewColumn DisplayMemberBinding="{Binding eventTime}">
                         <GridViewColumnHeader Width="140">EventTime
                         </GridViewColumnHeader>

@@ -4,7 +4,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Windows;
 
-namespace uplus_nms.util
+namespace scte_104_inserter.util
 {
 	class Network
 	{
@@ -21,7 +21,6 @@ namespace uplus_nms.util
 			this._serverIpAddr = ip;
 			this._port = port;
 		}
-
 		public void SetPayload(Byte[] payload)
 		{
 			_payload = payload;
