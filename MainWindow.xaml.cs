@@ -139,6 +139,7 @@ namespace scte_104_inserter
 				{
 					MessageBox.Show("config.json 파일이 없습니다.\n환경설정 파일을 읽지 못했습니다.\n기본값으로 설정합니다.", "경고", MessageBoxButton.OK);
 					jsonConfig.eventId = 0;
+					TbEventID.Text = "0";
 
 					jsonString = JsonSerializer.Serialize(jsonConfig);
 					File.WriteAllText(jsonConfig.configFileName, jsonString);
