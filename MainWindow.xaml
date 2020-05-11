@@ -7,7 +7,7 @@
 		Title="tnmtech-lab" Height="960" Width="960"
 		Left="0" Top="0" ResizeMode="NoResize">
 
-    <Grid VerticalAlignment="Top" HorizontalAlignment="Left" ShowGridLines="False" Height="Auto" Width="Auto">
+    <Grid VerticalAlignment="Top" HorizontalAlignment="Left" ShowGridLines="False" Height="930" Width="Auto">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="100*"/>
             <ColumnDefinition Width="100*"/>
@@ -30,7 +30,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="50"></RowDefinition>
             <RowDefinition Height="150"></RowDefinition>
-            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="100"></RowDefinition>
             <RowDefinition Height="30"></RowDefinition>
             <RowDefinition Height="30"></RowDefinition>
             <RowDefinition Height="30"></RowDefinition>
@@ -58,7 +58,15 @@
         </ListView>
         -->
         <TextBlock Text="Event Type" FontSize="14" FontWeight="Bold" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <ComboBox x:Name="cbEventType_1" Grid.Row="2" Grid.Column="1" Margin="5,5,15,5" SelectedIndex="1" Grid.ColumnSpan="2">
+        <StackPanel x:Name="EventTypePanel" Grid.Row="2" Grid.Column="1" Margin="5,5,15,5">
+            <RadioButton GroupName="rbEventType">Reserve</RadioButton>
+            <RadioButton GroupName="rbEventType" IsChecked="True">Start Normal</RadioButton>
+            <RadioButton GroupName="rbEventType">Start Immediate</RadioButton>
+            <RadioButton GroupName="rbEventType">End Normal</RadioButton>
+            <RadioButton GroupName="rbEventType">End Immediate</RadioButton>
+            <RadioButton GroupName="rbEventType">Cancel</RadioButton>
+        </StackPanel>
+        <ComboBox x:Name="cbEventType_1" Grid.Row="2" Grid.Column="1" Margin="5,5,15,5" SelectedIndex="1" Grid.ColumnSpan="2" Visibility="Hidden">
             <ComboBoxItem Content="Reserve"></ComboBoxItem>
             <ComboBoxItem Content="Start Normal"></ComboBoxItem>
             <ComboBoxItem Content="Start Immediate"></ComboBoxItem>
@@ -67,18 +75,18 @@
             <ComboBoxItem Content="Cancel"></ComboBoxItem>
         </ComboBox>
         <TextBlock Text="Server Info" FontSize="14" FontWeight="Bold" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <TextBox x:Name="TbIpaddr" Grid.Row="3" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbIpaddr_TextChanged"/>
-        <TextBox x:Name="TbPort" Grid.Row="3" Grid.Column="2" Margin="5,5,15,5" TextChanged="TbPort_TextChanged" />
-        <TextBlock Text="Event ID" FontSize="14" FontWeight="Bold" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0" Visibility="Hidden"/>
-        <TextBox x:Name="TbEventID" Grid.Row="4" Grid.Column="1" Margin="5,5,5,5" Grid.ColumnSpan="2" TextChanged="TbEventID_TextChanged" Visibility="Hidden"/>
+        <TextBox x:Name="TbIpaddr" Grid.Row="3" Grid.Column="1" Margin="10,5,10,5" GotFocus="TbIpaddr_GotFocus"/>
+        <TextBox x:Name="TbPort" Grid.Row="3" Grid.Column="2" Margin="10,5,20,5" GotFocus="TbPort_GotFocus"/>
+        <TextBlock Text="Current Event ID" FontSize="14" FontWeight="Bold" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock x:Name="TbEventID" Grid.Row="4" Grid.Column="1" Margin="10,5,10,5" IsEnabled="False" VerticalAlignment="Center"/>
         <TextBlock Text="Unique Program ID" FontSize="14" FontWeight="Bold" Grid.Row="5" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <TextBox x:Name="TbUnqProgramID" Grid.Row="5" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbUnqProgramID_TextChanged"></TextBox>        
+        <TextBox x:Name="TbUnqProgramID" Grid.Row="5" Grid.Column="1" Margin="10,5,10,5" GotFocus="TbUnqProgramID_GotFocus"></TextBox>
         <TextBlock Text="Preroll Time (1/1000 sec)" FontSize="14" FontWeight="Bold" Grid.Row="6" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <TextBox x:Name="TbPreroolTime" Grid.Row="6" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbPreroolTime_TextChanged"></TextBox>
+        <TextBox x:Name="TbPreroolTime" Grid.Row="6" Grid.Column="1" Margin="10,5,10,5" GotFocus="TbPreroolTime_GotFocus"></TextBox>
         <TextBlock Text="Break duration (1/10 sec)" FontSize="14" FontWeight="Bold" Grid.Row="7" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <TextBox x:Name="TbBreakDuration" Grid.Row="7" Grid.Column="1" Margin="5,5,5,5" TextChanged="TbBreakDuration_TextChanged"></TextBox>
+        <TextBox x:Name="TbBreakDuration" Grid.Row="7" Grid.Column="1" Margin="10,5,10,5" GotFocus="TbBreakDuration_GotFocus"></TextBox>
 
-        <ListView x:Name="LvLog_1" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Margin="20,5,20,5" MaxHeight="450" Grid.RowSpan="1" MinHeight="450" MinWidth="900" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Width="900" HorizontalAlignment="Stretch">
+        <ListView x:Name="LvLog_1" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Margin="20,10,20,40" MaxHeight="450" Grid.RowSpan="1" MinHeight="450" MinWidth="900" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Width="900" HorizontalAlignment="Stretch">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />

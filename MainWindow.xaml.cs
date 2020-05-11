@@ -32,7 +32,8 @@ namespace scte_104_inserter
 	public partial class MainWindow : Window
 	{
 		private ArrayList m_logList;
-		private int _event_id;
+		//private int _event_id;
+		private String _eventType;
 
 		//파일당 1개 명시?? (확실한가?)
 		private static readonly ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -149,7 +150,9 @@ namespace scte_104_inserter
 					TbIpaddr.Text = jsonConfig.ipAddr;
 					TbPort.Text = jsonConfig.port.ToString();
 					//TbEventID.Text = jsonConfig.eventId.ToString();
-					_event_id = jsonConfig.eventId;
+					TbEventID.Text = jsonConfig.eventId.ToString();
+					//_event_id = jsonConfig.eventId;					
+					TbEventID.Text = jsonConfig.eventId.ToString();
 					TbUnqProgramID.Text = jsonConfig.uniquePid.ToString();
 					TbPreroolTime.Text = jsonConfig.preRollTime.ToString();
 					TbBreakDuration.Text = jsonConfig.breakDuration.ToString();
@@ -176,8 +179,7 @@ namespace scte_104_inserter
 			{
 				vo.LvLog listitem = new vo.LvLog();
 				m_logList.Add(listitem.GetList());
-			}
-			//_event_id = 1;
+			}			
 
 			//decklink setup
 			m_deckLinkDiscovery = new DeckLinkDeviceDiscovery();
@@ -218,6 +220,8 @@ namespace scte_104_inserter
 
 			// splice_insert_type
 			int splice_insert_type = 0;
+
+#if false
 			if (cbEventType_1.Text == "Reserve")
 			{
 				splice_insert_type = 0;
@@ -243,13 +247,50 @@ namespace scte_104_inserter
 			{
 				splice_insert_type = 5;
 			}
+#else
+			RadioButton eventRB = (from element in EventTypePanel.Children.Cast<UIElement>()
+								   where element is RadioButton && (element as RadioButton).IsChecked.Value
+								   select element).SingleOrDefault() as RadioButton;
+			bool check = eventRB.IsChecked.Value;
+			String content = eventRB.Content as String;
+			if ( check == true)
+			{				
+				if (content == "Reserve")
+				{
+					splice_insert_type = 0;
+
+				}
+				else if (content == "Start Normal")
+				{
+					splice_insert_type = 1;
+				}
+				else if (content == "Start Immediate")
+				{
+					splice_insert_type = 2;
+				}
+				else if (content == "End Normal")
+				{
+					splice_insert_type = 3;
+				}
+				else if (content == "End Immediate")
+				{
+					splice_insert_type = 4;
+				}
+				else if (content == "Cancel")
+				{
+					splice_insert_type = 5;
+				}
+				_eventType = content;
+			}
+#endif
 
 			payload[16] = (byte)splice_insert_type;
 			//splice event id : 0x1234
-			payload[17] = (byte)(_event_id >> 24);
-			payload[18] = (byte)(_event_id >> 16);
-			payload[19] = (byte)(_event_id >> 8);
-			payload[20] = (byte)_event_id;
+			int event_id = Convert.ToInt32(TbEventID.Text);
+			payload[17] = (byte)(event_id >> 24);
+			payload[18] = (byte)(event_id >> 16);
+			payload[19] = (byte)(event_id >> 8);
+			payload[20] = (byte)event_id;
 
 			// unique program id : 0x4567
 			int uid = Convert.ToInt16(TbUnqProgramID.Text);
@@ -284,7 +325,8 @@ namespace scte_104_inserter
 			switch (btnName)
 			{
 				case "BtnCue_1":
-					_event_id = _event_id + 4;
+					TbEventID.Text = (Convert.ToInt32(TbEventID.Text)+4).ToString();
+					//_event_id += + 4;
 					//Byte[] payload = File.ReadAllBytes(@"message/spliceStart_immediate.bin");
 					Byte[] payload = MakePayload();
 
@@ -307,8 +349,9 @@ namespace scte_104_inserter
 					//log.ipAddress = common.Util.GetLocalIpAddress();
 					lvLog.ipAddress = TbIpaddr.Text;
 					lvLog.port = Convert.ToInt32(TbPort.Text);
-					lvLog.eventType = cbEventType_1.Text;
-					lvLog.eventId = _event_id.ToString();
+					//lvLog.eventType = cbEventType_1.Text;
+					lvLog.eventType = _eventType;
+					lvLog.eventId = TbEventID.Text;
 					lvLog.uniquePid = TbUnqProgramID.Text;
 					lvLog.prerollTime = TbPreroolTime.Text;
 					lvLog.breakDuration = TbBreakDuration.Text;
@@ -322,7 +365,13 @@ namespace scte_104_inserter
 					LvLog_1.ScrollIntoView(LvLog_1.Items[LvLog_1.Items.Count - 1]);
 
 					vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
-					jsonConfig.eventId = _event_id;
+					jsonConfig.ipAddr = TbIpaddr.Text;
+					jsonConfig.port = Convert.ToInt32(lvLog.port);
+					jsonConfig.eventId = Convert.ToInt32(lvLog.eventId);
+					jsonConfig.uniquePid = Convert.ToInt32(lvLog.uniquePid);
+					jsonConfig.preRollTime = Convert.ToInt32(lvLog.prerollTime);
+					jsonConfig.breakDuration = Convert.ToInt32(lvLog.breakDuration);
+
 					String jsonString = JsonSerializer.Serialize(jsonConfig);
 					File.WriteAllText(jsonConfig.configFileName, jsonString);
 					break;
@@ -340,15 +389,6 @@ namespace scte_104_inserter
 		private void ContextMenu_Click(object sender, RoutedEventArgs e)
 		{
 			MessageBox.Show("click");
-		}		
-
-		private void TbIpaddr_TextChanged(object sender, TextChangedEventArgs e)
-		{
-			var thisTextBox = sender as System.Windows.Controls.TextBox;
-			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
-			jsonConfig.ipAddr = thisTextBox.Text;
-			String jsonString = JsonSerializer.Serialize(jsonConfig);
-			File.WriteAllText(jsonConfig.configFileName, jsonString);
 		}
 
 		private void TbPort_TextChanged(object sender, TextChangedEventArgs e)
@@ -365,23 +405,7 @@ namespace scte_104_inserter
 				MessageBox.Show("숫자만 넣을 수 있습니다.", "경고", MessageBoxButton.OK);
 				thisTextBox.Text = thisTextBox.Text.Remove(thisTextBox.Text.Length - 1);
 			}
-
-			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
-			jsonConfig.port = Convert.ToInt32(thisTextBox.Text);
-			String jsonString = JsonSerializer.Serialize(jsonConfig);
-			File.WriteAllText(jsonConfig.configFileName, jsonString);
-		}
-
-		private void TbEventID_TextChanged(object sender, TextChangedEventArgs e)
-		{
-			/*
-			var thisTextBox = sender as System.Windows.Controls.TextBox;
-			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
-			jsonConfig.eventId = Convert.ToInt32(thisTextBox.Text);
-			String jsonString = JsonSerializer.Serialize(jsonConfig);
-			File.WriteAllText(jsonConfig.configFileName, jsonString);
-			*/
-		}
+		}		
 
 		private void TbUnqProgramID_TextChanged(object sender, TextChangedEventArgs e)
 		{
@@ -397,11 +421,6 @@ namespace scte_104_inserter
 				MessageBox.Show("숫자만 넣을 수 있습니다.", "경고", MessageBoxButton.OK);
 				thisTextBox.Text = thisTextBox.Text.Remove(thisTextBox.Text.Length - 1);
 			}
-
-			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
-			jsonConfig.uniquePid = Convert.ToInt32(thisTextBox.Text);
-			String jsonString = JsonSerializer.Serialize(jsonConfig);
-			File.WriteAllText(jsonConfig.configFileName, jsonString);
 		}
 
 		private void TbPreroolTime_TextChanged(object sender, TextChangedEventArgs e)
@@ -417,11 +436,7 @@ namespace scte_104_inserter
 			{
 				MessageBox.Show("숫자만 넣을 수 있습니다.", "경고", MessageBoxButton.OK);
 				thisTextBox.Text = thisTextBox.Text.Remove(thisTextBox.Text.Length - 1);
-			}
-			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
-			jsonConfig.preRollTime = Convert.ToInt32(thisTextBox.Text);
-			String jsonString = JsonSerializer.Serialize(jsonConfig);
-			File.WriteAllText(jsonConfig.configFileName, jsonString);
+			}			
 		}
 
 		private void TbBreakDuration_TextChanged(object sender, TextChangedEventArgs e)
@@ -437,11 +452,72 @@ namespace scte_104_inserter
 			{
 				MessageBox.Show("숫자만 넣을 수 있습니다.", "경고", MessageBoxButton.OK);
 				thisTextBox.Text = thisTextBox.Text.Remove(thisTextBox.Text.Length - 1);
-			}
-			vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
-			jsonConfig.breakDuration = Convert.ToInt32(thisTextBox.Text);
-			String jsonString = JsonSerializer.Serialize(jsonConfig);
-			File.WriteAllText(jsonConfig.configFileName, jsonString);
+			}			
+		}
+
+		private void TbUnqProgramID_GotFocus(object sender, RoutedEventArgs e)
+		{
+			var thisTextBox = sender as System.Windows.Controls.TextBox;
+			Dispatcher.BeginInvoke(
+				System.Windows.Threading.DispatcherPriority.ContextIdle,
+				new Action(
+					delegate
+					{
+						thisTextBox.SelectAll();
+					})
+				);
+		}
+
+		private void TbPreroolTime_GotFocus(object sender, RoutedEventArgs e)
+		{
+			var thisTextBox = sender as System.Windows.Controls.TextBox;
+			Dispatcher.BeginInvoke(
+				System.Windows.Threading.DispatcherPriority.ContextIdle,
+				new Action(
+					delegate
+					{
+						thisTextBox.SelectAll();
+					})
+				);
+		}
+
+		private void TbBreakDuration_GotFocus(object sender, RoutedEventArgs e)
+		{
+			var thisTextBox = sender as System.Windows.Controls.TextBox;
+			Dispatcher.BeginInvoke(
+				System.Windows.Threading.DispatcherPriority.ContextIdle,
+				new Action(
+					delegate
+					{
+						thisTextBox.SelectAll();
+					})
+				);
+		}
+
+		private void TbIpaddr_GotFocus(object sender, RoutedEventArgs e)
+		{
+			var thisTextBox = sender as System.Windows.Controls.TextBox;
+			Dispatcher.BeginInvoke(
+				System.Windows.Threading.DispatcherPriority.ContextIdle,
+				new Action(
+					delegate
+					{
+						thisTextBox.SelectAll();
+					})
+				);
+		}
+
+		private void TbPort_GotFocus(object sender, RoutedEventArgs e)
+		{
+			var thisTextBox = sender as System.Windows.Controls.TextBox;
+			Dispatcher.BeginInvoke(
+				System.Windows.Threading.DispatcherPriority.ContextIdle,
+				new Action(
+					delegate
+					{
+						thisTextBox.SelectAll();
+					})
+				);
 		}
 	}
 }
