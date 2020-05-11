@@ -342,10 +342,10 @@ namespace scte_104_inserter
 						lvLog.status = "Error";
 					}
 
-					Clock clk = new Clock();
+					//Clock clk = new Clock();
 
-					//lvLog.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-					lvLog.eventTime = clk.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+					lvLog.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+					//lvLog.eventTime = clk.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
 					//log.ipAddress = common.Util.GetLocalIpAddress();
 					lvLog.ipAddress = TbIpaddr.Text;
 					lvLog.port = Convert.ToInt32(TbPort.Text);
