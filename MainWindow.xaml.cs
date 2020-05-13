@@ -21,7 +21,6 @@ using System.Text.RegularExpressions;
 
 using log4net;
 
-using DeckLinkAPI;
 using scte104_cue_inserter.util;
 
 namespace scte_104_inserter
@@ -37,88 +36,6 @@ namespace scte_104_inserter
 
 		//파일당 1개 명시?? (확실한가?)
 		private static readonly ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-		//decklink member
-
-		struct DisplayModeEntry
-		{
-			public IDeckLinkDisplayMode displayMode;
-
-			public DisplayModeEntry(IDeckLinkDisplayMode displayMode)
-			{
-				this.displayMode = displayMode;
-			}
-
-			public override string ToString()
-			{
-				string str;
-
-				displayMode.GetName(out str);
-
-				return str;
-			}
-		}
-
-		/// <summary>
-		/// Used for putting other object types into combo boxes.
-		/// </summary>
-		struct StringObjectPair<T>
-		{
-			public string name;
-			public T value;
-
-			public StringObjectPair(string name, T value)
-			{
-				this.name = name;
-				this.value = value;
-			}
-
-			public override string ToString()
-			{
-				return name;
-			}
-		}
-
-		const int kStillsPreviewHorizontalSpacing = 10;
-		const int kStillsPreviewVerticalSpacing = 10;
-		const int kInputInvalidFrameTimeout = 60;
-
-		delegate void DirectoryPathStringDelegate(string path);
-		delegate void ControlEnableDelegate(Control control, bool enable);
-
-		private IReadOnlyList<StringObjectPair<_BMDPixelFormat>> kPixelFormatList = new List<StringObjectPair<_BMDPixelFormat>>
-		{
-			new StringObjectPair<_BMDPixelFormat>("8-Bit YUV", _BMDPixelFormat.bmdFormat8BitYUV),
-			new StringObjectPair<_BMDPixelFormat>("10-Bit YUV", _BMDPixelFormat.bmdFormat10BitYUV),
-			new StringObjectPair<_BMDPixelFormat>("8-Bit ARGB", _BMDPixelFormat.bmdFormat8BitARGB),
-			new StringObjectPair<_BMDPixelFormat>("8-Bit BGRA", _BMDPixelFormat.bmdFormat8BitBGRA),
-			new StringObjectPair<_BMDPixelFormat>("10-Bit RGB", _BMDPixelFormat.bmdFormat10BitRGB),
-			new StringObjectPair<_BMDPixelFormat>("12-Bit RGB", _BMDPixelFormat.bmdFormat12BitRGB),
-			new StringObjectPair<_BMDPixelFormat>("12-Bit RGB LE", _BMDPixelFormat.bmdFormat12BitRGBLE),
-			new StringObjectPair<_BMDPixelFormat>("10-Bit RGBX", _BMDPixelFormat.bmdFormat10BitRGBX),
-			new StringObjectPair<_BMDPixelFormat>("10-Bit RGBX LE", _BMDPixelFormat.bmdFormat10BitRGBXLE)
-		};
-
-		private DeckLinkDeviceDiscovery m_deckLinkDiscovery;
-		private Bgra32FrameConverter m_frameConverter;
-		private DeckLinkInputDevice m_selectedCaptureDevice;
-		private DeckLinkOutputDevice m_selectedPlaybackDevice;
-
-		private int m_captureFrameIntervalCount = 0;
-		private int m_captureStillsCount = 0;
-		private int m_invalidFrameTimeout = 0;
-
-		private string m_selectedFolder;
-		//private ImageList m_folderImageList;
-
-		private CountdownEvent m_captureCountdown;
-		private CancellationTokenSource m_captureCancel;
-		private CancellationTokenSource m_captureFileExists;
-		private CancellationTokenSource m_captureDeviceRemovedCancel;
-		private CancellationTokenSource m_captureInvalidCancel;
-
-		private CancellationTokenSource m_playbackCancel;
-		private CancellationTokenSource m_playbackDeviceRemovedCancel;
 
 		public MainWindow()
 		{
@@ -181,12 +98,7 @@ namespace scte_104_inserter
 			{
 				vo.LvLog listitem = new vo.LvLog();
 				m_logList.Add(listitem.GetList());
-			}			
-
-			//decklink setup
-			m_deckLinkDiscovery = new DeckLinkDeviceDiscovery();
-
-			m_frameConverter = new Bgra32FrameConverter();
+			}
 		}
 		
 		private Byte[] MakePayload()

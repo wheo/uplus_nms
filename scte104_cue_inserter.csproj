@@ -7,17 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <COMReference Include="DeckLinkAPI.dll">
-      <Guid>d864517a-edd5-466d-867d-c819f1c052bb</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-    </COMReference>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="System.Text.Json" Version="4.7.1" />
   </ItemGroup>
@@ -30,7 +19,6 @@
 
   <ItemGroup>
     <Folder Include="lib\" />
-    <Folder Include="decklink\" />
   </ItemGroup>
 
 </Project>
