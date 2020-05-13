@@ -64,7 +64,6 @@
             <RadioButton GroupName="rbEventType">Start Immediate</RadioButton>
             <RadioButton GroupName="rbEventType">End Normal</RadioButton>
             <RadioButton GroupName="rbEventType">End Immediate</RadioButton>
-            <RadioButton GroupName="rbEventType">Cancel</RadioButton>
         </StackPanel>
         <ComboBox x:Name="cbEventType_1" Grid.Row="2" Grid.Column="1" Margin="5,5,15,5" SelectedIndex="1" Grid.ColumnSpan="2" Visibility="Hidden">
             <ComboBoxItem Content="Reserve"></ComboBoxItem>
@@ -94,10 +93,11 @@
             </ListView.ItemContainerStyle>            
             <ListView.View>
                 <GridView AllowsColumnReorder="False" ColumnHeaderToolTip="EventLog Information">
+                    <GridViewColumn Header="idx" Width="25"  DisplayMemberBinding="{Binding index }"/>
                     <GridViewColumn DisplayMemberBinding="{Binding eventTime}">
                         <GridViewColumnHeader Width="140">EventTime
                         </GridViewColumnHeader>
-                    </GridViewColumn>
+                    </GridViewColumn>                  
                     <GridViewColumn Header="IP address" Width="90"  DisplayMemberBinding="{Binding ipAddress }"/>
                     <GridViewColumn Header="Port" Width="50" DisplayMemberBinding="{Binding port }"/>
                     <GridViewColumn Header="EventType" Width="100" DisplayMemberBinding="{Binding eventType}"/>
@@ -105,7 +105,14 @@
                     <GridViewColumn Header="Unqiue PID" Width="90" DisplayMemberBinding="{Binding uniquePid}"/>
                     <GridViewColumn Header="Preroll Time" Width="90" DisplayMemberBinding="{Binding prerollTime}"/>
                     <GridViewColumn Header="Break duration" Width="90" DisplayMemberBinding="{Binding breakDuration}"/>
-                    <GridViewColumn Header="Status" Width="80" DisplayMemberBinding="{Binding status}"/>
+                    <GridViewColumn Header="Status" Width="55" DisplayMemberBinding="{Binding status}"/>
+                    <GridViewColumn Header="Cancel" Width="70">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button x:Name="lvBtnCancel" Content="Cancel" Click="lvBtnCancel_Click"></Button>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>

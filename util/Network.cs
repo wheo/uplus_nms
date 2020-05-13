@@ -11,10 +11,12 @@ namespace scte_104_inserter.util
 		String _serverIpAddr;
 		Int32 _port;
 		Byte[] _payload;
+		int _timeout_msec;
 		public Network()
 		{
 			_serverIpAddr = String.Empty;
-			_port = -1;            
+			_port = -1;
+			_timeout_msec = 100;
 		}
 		public void SetConnection(String ip, Int32 port)
 		{
@@ -24,6 +26,10 @@ namespace scte_104_inserter.util
 		public void SetPayload(Byte[] payload)
 		{
 			_payload = payload;
+		}
+		public void SetTimeout(int msec)
+		{
+			_timeout_msec = msec;
 		}
 
 		public bool Connect()
@@ -42,12 +48,13 @@ namespace scte_104_inserter.util
 				try
 				{
 					TcpClient client = new TcpClient(this._serverIpAddr, this._port);
-					client.SendTimeout = 1000;
+					client.SendTimeout = _timeout_msec;
 
 					//byte[] data = Encoding.UTF8.GetBytes("Hello");
 					byte[] data = this._payload;
 
 					NetworkStream ns = client.GetStream();
+					ns.WriteTimeout = _timeout_msec;
 					ns.Write(data, 0, data.Length);
 
 					/*

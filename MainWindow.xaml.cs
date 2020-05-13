@@ -22,6 +22,7 @@ using System.Text.RegularExpressions;
 using log4net;
 
 using scte104_cue_inserter.util;
+using scte_104_inserter.vo;
 
 namespace scte_104_inserter
 {
@@ -30,9 +31,18 @@ namespace scte_104_inserter
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		private ArrayList m_logList;
+		//private ArrayList m_logList;
 		//private int _event_id;
-		private String _eventType;
+
+		public enum SpliceInsertType
+		{
+			Reserve = 0,
+			Start_Normal = 1,
+			Start_Immediate = 2,
+			End_Normal = 3,
+			End_Immediate = 4,
+			Cancel = 5
+		}
 
 		//파일당 1개 명시?? (확실한가?)
 		private static readonly ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -93,15 +103,17 @@ namespace scte_104_inserter
 
 		private void InitializeOthers()
 		{
+			/*
 			m_logList = new ArrayList();
 			for (int i=0;i<4;i++)
 			{
-				vo.LvLog listitem = new vo.LvLog();
+				LvLog listitem = new LvLog();
 				m_logList.Add(listitem.GetList());
 			}
+			*/
 		}
 		
-		private Byte[] MakePayload()
+		private Byte[] MakePayload(Scte104 lvLog)
 		{
 			Byte[] payload = new Byte[30];
 
@@ -133,89 +145,24 @@ namespace scte_104_inserter
 			payload[15] = 0x0e;
 
 			// splice_insert_type
-			int splice_insert_type = 0;
-
-#if false
-			if (cbEventType_1.Text == "Reserve")
-			{
-				splice_insert_type = 0;
-
-			}
-			else if (cbEventType_1.Text == "Start Normal")
-			{
-				splice_insert_type = 1;
-			}
-			else if (cbEventType_1.Text == "Start Immediate")
-			{
-				splice_insert_type = 2;
-			}
-			else if (cbEventType_1.Text == "End Normal")
-			{
-				splice_insert_type = 3;
-			}
-			else if (cbEventType_1.Text == "End Immediate")
-			{
-				splice_insert_type = 4;
-			}
-			else if (cbEventType_1.Text == "Cancel")
-			{
-				splice_insert_type = 5;
-			}
-#else
-			RadioButton eventRB = (from element in EventTypePanel.Children.Cast<UIElement>()
-								   where element is RadioButton && (element as RadioButton).IsChecked.Value
-								   select element).SingleOrDefault() as RadioButton;
-			bool check = eventRB.IsChecked.Value;
-			String content = eventRB.Content as String;
-			if ( check == true)
-			{				
-				if (content == "Reserve")
-				{
-					splice_insert_type = 0;
-
-				}
-				else if (content == "Start Normal")
-				{
-					splice_insert_type = 1;
-				}
-				else if (content == "Start Immediate")
-				{
-					splice_insert_type = 2;
-				}
-				else if (content == "End Normal")
-				{
-					splice_insert_type = 3;
-				}
-				else if (content == "End Immediate")
-				{
-					splice_insert_type = 4;
-				}
-				else if (content == "Cancel")
-				{
-					splice_insert_type = 5;
-				}
-				_eventType = content;
-			}
-#endif
-
-			payload[16] = (byte)splice_insert_type;
+			payload[16] = (byte)lvLog.insertType;
 			//splice event id : 0x1234
-			int event_id = Convert.ToInt32(TbEventID.Text);
+			int event_id = Convert.ToInt32(lvLog.eventId);
 			payload[17] = (byte)(event_id >> 24);
 			payload[18] = (byte)(event_id >> 16);
 			payload[19] = (byte)(event_id >> 8);
 			payload[20] = (byte)event_id;
 
 			// unique program id : 0x4567
-			int uid = Convert.ToInt16(TbUnqProgramID.Text);
+			int uid = Convert.ToInt16(lvLog.uniquePid);
 			payload[21] = (byte)(uid >> 8);
 			payload[22] = (byte)uid;
 			// pre_roll_time 
-			int pre_roll_time = Convert.ToInt16(TbPreroolTime.Text);
+			int pre_roll_time = Convert.ToInt16(lvLog.prerollTime);
 			payload[23] = (byte)(pre_roll_time >> 8);
 			payload[24] = (byte)pre_roll_time;
 			// break duration
-			int break_duration = Convert.ToInt16(TbBreakDuration.Text);
+			int break_duration = Convert.ToInt16(lvLog.breakDuration);
 			payload[25] = (byte)(break_duration >> 8);
 			payload[26] = (byte)break_duration;
 			//avail_num //fixed
@@ -233,58 +180,93 @@ namespace scte_104_inserter
 			var button = sender as Button;
 			String btnName = button.Name;
 
-			List<vo.LvLog> lvLogItem;
-			vo.LvLog lvLog = new vo.LvLog();
+			Scte104 scte104 = new Scte104();
 
 			switch (btnName)
 			{
 				case "BtnCue_1":
 					TbEventID.Text = (Convert.ToInt32(TbEventID.Text)+4).ToString();
+					//Clock clk = new Clock();
+
+					scte104.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+					//lvLog.eventTime = clk.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+					//log.ipAddress = common.Util.GetLocalIpAddress();
+					scte104.ipAddress = TbIpaddr.Text;
+					scte104.port = Convert.ToInt32(TbPort.Text);
+
+					RadioButton eventRB = (from element in EventTypePanel.Children.Cast<UIElement>()
+										   where element is RadioButton && (element as RadioButton).IsChecked.Value
+										   select element).SingleOrDefault() as RadioButton;
+					bool check = eventRB.IsChecked.Value;
+					String content = eventRB.Content as String;
+					if (check == true)
+					{
+						if (content == "Reserve")
+						{
+							scte104.insertType = (int)SpliceInsertType.Reserve;
+						}
+						else if (content == "Start Normal")
+						{
+							scte104.insertType = (int)SpliceInsertType.Start_Normal;
+						}
+						else if (content == "Start Immediate")
+						{
+							scte104.insertType = (int)SpliceInsertType.Start_Immediate;
+						}
+						else if (content == "End Normal")
+						{
+							scte104.insertType = (int)SpliceInsertType.End_Normal;
+						}
+						else if (content == "End Immediate")
+						{
+							scte104.insertType = (int)SpliceInsertType.End_Immediate;
+						}
+						else if (content == "Cancel")
+						{
+							scte104.insertType = (int)SpliceInsertType.Cancel;
+						}
+						//_eventType = content;
+						scte104.eventType = content;
+					}
+					scte104.index = Scte104.GetLastIndex();
+					scte104.eventId = TbEventID.Text;
+					scte104.uniquePid = TbUnqProgramID.Text;
+					scte104.prerollTime = TbPreroolTime.Text;
+					scte104.breakDuration = TbBreakDuration.Text;
+
 					//_event_id += + 4;
 					//Byte[] payload = File.ReadAllBytes(@"message/spliceStart_immediate.bin");
-					Byte[] payload = MakePayload();
+					Byte[] payload = MakePayload(scte104);
 
 					//tcp
 					util.Network conn = new util.Network();
-					conn.SetConnection(TbIpaddr.Text, Convert.ToInt32(TbPort.Text));					
+					conn.SetConnection(TbIpaddr.Text, Convert.ToInt32(TbPort.Text));
+					conn.SetTimeout(10);
 					conn.SetPayload(payload);
 					if (conn.Connect())
 					{
-						lvLog.status = "Completed";
+						scte104.status = "Completed";
 					} else
 					{
-						lvLog.status = "Error";
+						scte104.status = "Error";
 					}
+					
+					Scte104.GetList().Add(scte104);
+					scte104.WriteLvLog();
 
-					//Clock clk = new Clock();
-
-					lvLog.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-					//lvLog.eventTime = clk.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
-					//log.ipAddress = common.Util.GetLocalIpAddress();
-					lvLog.ipAddress = TbIpaddr.Text;
-					lvLog.port = Convert.ToInt32(TbPort.Text);
-					//lvLog.eventType = cbEventType_1.Text;
-					lvLog.eventType = _eventType;
-					lvLog.eventId = TbEventID.Text;
-					lvLog.uniquePid = TbUnqProgramID.Text;
-					lvLog.prerollTime = TbPreroolTime.Text;
-					lvLog.breakDuration = TbBreakDuration.Text;
-
-					lvLogItem = (List<vo.LvLog>)m_logList[0];
-					lvLogItem.Add(lvLog);
-					lvLog.WriteLvLog();
+					Scte104.IncreseIndex();
 
 					LvLog_1.ItemsSource = null;
-					LvLog_1.ItemsSource = lvLogItem;
+					LvLog_1.ItemsSource = Scte104.GetList();
 					LvLog_1.ScrollIntoView(LvLog_1.Items[LvLog_1.Items.Count - 1]);
 
 					vo.JsonConfig jsonConfig = vo.JsonConfig.getInstance();
 					jsonConfig.ipAddr = TbIpaddr.Text;
-					jsonConfig.port = Convert.ToInt32(lvLog.port);
-					jsonConfig.eventId = Convert.ToInt32(lvLog.eventId);
-					jsonConfig.uniquePid = Convert.ToInt32(lvLog.uniquePid);
-					jsonConfig.preRollTime = Convert.ToInt32(lvLog.prerollTime);
-					jsonConfig.breakDuration = Convert.ToInt32(lvLog.breakDuration);
+					jsonConfig.port = Convert.ToInt32(scte104.port);
+					jsonConfig.eventId = Convert.ToInt32(scte104.eventId);
+					jsonConfig.uniquePid = Convert.ToInt32(scte104.uniquePid);
+					jsonConfig.preRollTime = Convert.ToInt32(scte104.prerollTime);
+					jsonConfig.breakDuration = Convert.ToInt32(scte104.breakDuration);
 
 					String jsonString = JsonSerializer.Serialize(jsonConfig);
 					File.WriteAllText(jsonConfig.configFileName, jsonString);
@@ -432,6 +414,55 @@ namespace scte_104_inserter
 						thisTextBox.SelectAll();
 					})
 				);
+		}
+
+		private Scte104 GetLvItem(RoutedEventArgs e)
+		{
+			DependencyObject dep = (DependencyObject)e.OriginalSource;
+			while(!(dep is System.Windows.Controls.ListViewItem))
+			{
+				try
+				{
+					dep = VisualTreeHelper.GetParent(dep);
+				}
+				catch
+				{
+					return null;
+				}
+			}
+			ListViewItem item = (ListViewItem)dep;
+			Scte104 content = (Scte104)item.Content;
+			//content.index = 
+			return content;
+		}
+
+		private void lvBtnCancel_Click(object sender, RoutedEventArgs e)
+		{
+			Scte104 scte104 = GetLvItem(e);
+			//MessageBox.Show(String.Format("{0} {1}", scte104.eventId, scte104.index));
+			scte104.insertType = (int)SpliceInsertType.Cancel;
+			scte104.eventType = "Cancel";
+			scte104.prerollTime = "0";
+			scte104.breakDuration = "0";
+			Byte[] payload = MakePayload(scte104);
+		
+			//tcp
+			util.Network conn = new util.Network();
+			conn.SetConnection(TbIpaddr.Text, Convert.ToInt32(TbPort.Text));
+			conn.SetPayload(payload);
+			if (conn.Connect())
+			{
+				scte104.status = "Completed";
+			}
+			else
+			{
+				scte104.status = "Error";
+			}
+
+			Scte104.GetList()[scte104.index] = scte104;
+
+			LvLog_1.ItemsSource = null;
+			LvLog_1.ItemsSource = Scte104.GetList();
 		}
 	}
 }
