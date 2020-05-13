@@ -186,9 +186,7 @@ namespace scte_104_inserter
 			{
 				case "BtnCue_1":
 					TbEventID.Text = (Convert.ToInt32(TbEventID.Text)+4).ToString();
-					//Clock clk = new Clock();
-
-					scte104.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+					//Clock clk = new Clock();					
 					//lvLog.eventTime = clk.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
 					//log.ipAddress = common.Util.GetLocalIpAddress();
 					scte104.ipAddress = TbIpaddr.Text;
@@ -250,7 +248,8 @@ namespace scte_104_inserter
 					{
 						scte104.status = "Error";
 					}
-					
+
+					scte104.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 					Scte104.GetList().Add(scte104);
 					scte104.WriteLvLog();
 
@@ -459,6 +458,7 @@ namespace scte_104_inserter
 				scte104.status = "Error";
 			}
 
+			scte104.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 			Scte104.GetList()[scte104.index] = scte104;
 
 			LvLog_1.ItemsSource = null;
