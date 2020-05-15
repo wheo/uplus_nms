@@ -36,12 +36,12 @@ namespace scte_104_inserter.util
 		{
 			if (String.IsNullOrEmpty(this._serverIpAddr))
 			{
-				MessageBox.Show("서버 ip를 입력하세요", "경고", MessageBoxButton.OK);
-				return false;
+				//MessageBox.Show("서버 ip를 입력하세요", "경고", MessageBoxButton.OK);
+				throw new System.ArgumentException("서버 ip를 입력하세요");
 			} else if (this._port == -1)
 			{
-				MessageBox.Show("서버 port를 입력하세요", "경고", MessageBoxButton.OK);
-				return false;
+				//MessageBox.Show("서버 port를 입력하세요", "경고", MessageBoxButton.OK);
+				throw new System.ArgumentException("서버 port를 입력하세요");
 			}
 			else
 			{
@@ -70,7 +70,7 @@ namespace scte_104_inserter.util
 				}
 				catch(SocketException se)
 				{
-					MessageBox.Show(se.ToString());
+					MessageBox.Show(se.Message, "경고", MessageBoxButton.OK, MessageBoxImage.Warning);
 					return false;
 				}								
 				return true;
