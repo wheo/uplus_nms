@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
 		Title="tnmtech-lab" Height="960" Width="960"
-		Left="0" Top="0" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+		Left="0" Top="0" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
 
     <Grid VerticalAlignment="Top" HorizontalAlignment="Left" ShowGridLines="False" Height="930" Width="Auto">
         <Grid.ColumnDefinitions>
@@ -46,6 +46,7 @@
                 <DropShadowEffect/>
             </Button.Effect>
         </Button>
+        <ToggleButton x:Name="ToggleAuto" Grid.Column="2" Grid.Row="2" Margin="210,50,20,10" Checked="ToggleAuto_Changed" Unchecked="ToggleAuto_Changed">프리셋</ToggleButton>
         <!--
         <ListView x:Name="LvRecv_1" Grid.Row="1" Grid.Column="2" Margin="15,15,15,15">
             <ListView.View>
@@ -75,7 +76,7 @@
             <ComboBoxItem Content="Cancel"></ComboBoxItem>
         </ComboBox>
         <TextBlock Text="Server Info" FontSize="14" FontWeight="Bold" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <TextBox x:Name="TbIpaddr" Grid.Row="3" Grid.Column="1" Margin="10,5,10,5" GotFocus="TbIpaddr_GotFocus"/>
+        <TextBox x:Name="TbIpaddr" Grid.Row="3" Margin="10,5,10,5" GotFocus="TbIpaddr_GotFocus" Grid.Column="1"/>
         <TextBox x:Name="TbPort" Grid.Row="3" Grid.Column="2" Margin="10,5,20,5" GotFocus="TbPort_GotFocus" TextChanged="TbPort_TextChanged"/>
         <TextBlock Text="Current Event ID" FontSize="14" FontWeight="Bold" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <TextBlock x:Name="TbEventID" Grid.Row="4" Grid.Column="1" Margin="10,5,10,5" IsEnabled="False" VerticalAlignment="Center"/>
@@ -92,14 +93,14 @@
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 </Style>
-            </ListView.ItemContainerStyle>            
+            </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView AllowsColumnReorder="False" ColumnHeaderToolTip="EventLog Information">
-                    <GridViewColumn Header="idx" Width="25"  DisplayMemberBinding="{Binding index }"/>
+                    <GridViewColumn Header="idx" Width="35"  DisplayMemberBinding="{Binding index }"/>
                     <GridViewColumn DisplayMemberBinding="{Binding eventTime}">
                         <GridViewColumnHeader Width="140">EventTime
                         </GridViewColumnHeader>
-                    </GridViewColumn>                  
+                    </GridViewColumn>
                     <GridViewColumn Header="IP address" Width="90"  DisplayMemberBinding="{Binding ipAddress }"/>
                     <GridViewColumn Header="Port" Width="50" DisplayMemberBinding="{Binding port }"/>
                     <GridViewColumn Header="EventType" Width="100" DisplayMemberBinding="{Binding eventType}"/>

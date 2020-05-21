@@ -13,18 +13,22 @@ namespace scte_104_inserter.vo
         public int insertType { get; set; }
         public String eventTime { get; set; }
         public String ipAddress { get; set; }
-        public Int32 port { get; set; }
+        public Int16 port { get; set; }
         public String eventType { get; set; }
-        public String eventId { get; set; }
-        public String uniquePid { get; set; }
-        public String prerollTime { get; set; }
-        public String breakDuration { get; set; }
+        public int eventId { get; set; }
+        public Int16 uniquePid { get; set; }
+        public Int16 prerollTime { get; set; }
+        public Int16 breakDuration { get; set; }
         public String status { get; set; }
         public bool isCancel { get; }
 
         public Scte104()
         {
             index = 0;
+        }
+        public Scte104 ShallowCopy()
+        {
+            return (Scte104)this.MemberwiseClone();
         }
 
         public static List<Scte104> instance;
@@ -44,14 +48,15 @@ namespace scte_104_inserter.vo
                 , status));
         }
 
+        public int SetIncrease()
+        {
+            index = _index++;
+            return index;
+        }
+
         public static int GetLastIndex()
         {
             return _index;
-        }
-
-        public static int IncreseIndex()
-        {
-            return _index++;
         }
 
         public static List<Scte104> GetList()

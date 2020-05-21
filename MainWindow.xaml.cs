@@ -21,8 +21,8 @@ using System.Text.RegularExpressions;
 
 using log4net;
 
-using scte104_cue_inserter.util;
 using scte_104_inserter.vo;
+using System.Windows.Controls.Primitives;
 
 namespace scte_104_inserter
 {
@@ -33,6 +33,12 @@ namespace scte_104_inserter
 	{
 		//private ArrayList m_logList;
 		//private int _event_id;
+
+		private bool _ShouldStop;
+		private int _eventID;
+
+		public String _ip { get; set; }
+		public Int16 _port { get; set; }
 
 		public enum SpliceInsertType
 		{
@@ -50,9 +56,9 @@ namespace scte_104_inserter
 		public MainWindow()
 		{
 			InitializeComponent();
-			LoadConfig();
 			InitializeOthers();
-			logger.Info("Program Started...");
+			LoadConfig();			
+			logger.Info("Program Started...");			
 		}
 
 		private bool LoadConfig()
@@ -74,12 +80,16 @@ namespace scte_104_inserter
 				else
 				{
 					jsonString = File.ReadAllText(jsonConfig.configFileName);
-					jsonConfig = JsonSerializer.Deserialize<JsonConfig>(jsonString);
+					jsonConfig = JsonSerializer.Deserialize<JsonConfig>(jsonString);					
 
 					TbIpaddr.Text = jsonConfig.ipAddr;
 					TbPort.Text = jsonConfig.port.ToString();
+
+					_ip = jsonConfig.ipAddr;
+					_port = jsonConfig.port;
+
 					TbEventID.Text = jsonConfig.eventId.ToString();
-					TbEventID.Text = jsonConfig.eventId.ToString();
+					_eventID = jsonConfig.eventId;
 					TbUnqProgramID.Text = jsonConfig.uniquePid.ToString();
 					TbPreroolTime.Text = jsonConfig.preRollTime.ToString();
 					TbBreakDuration.Text = jsonConfig.breakDuration.ToString();
@@ -101,10 +111,10 @@ namespace scte_104_inserter
 
 		private void InitializeOthers()
 		{
-		
+			_ShouldStop = false;		
 		}
 		
-		private Byte[] MakePayload(Scte104 lvLog)
+		private Byte[] MakePayload(Scte104 scte104)
 		{
 			Byte[] payload = new Byte[30];
 
@@ -136,24 +146,24 @@ namespace scte_104_inserter
 			payload[15] = 0x0e;
 
 			// splice_insert_type
-			payload[16] = (byte)lvLog.insertType;
+			payload[16] = (byte)scte104.insertType;
 			//splice event id : 0x1234
-			int event_id = Convert.ToInt32(lvLog.eventId);
+			int event_id = scte104.eventId;
 			payload[17] = (byte)(event_id >> 24);
 			payload[18] = (byte)(event_id >> 16);
 			payload[19] = (byte)(event_id >> 8);
 			payload[20] = (byte)event_id;
 
 			// unique program id : 0x4567
-			int uid = Convert.ToInt16(lvLog.uniquePid);
+			Int16 uid = Convert.ToInt16(scte104.uniquePid);
 			payload[21] = (byte)(uid >> 8);
 			payload[22] = (byte)uid;
 			// pre_roll_time 
-			int pre_roll_time = Convert.ToInt16(lvLog.prerollTime);
+			Int16 pre_roll_time = Convert.ToInt16(scte104.prerollTime);
 			payload[23] = (byte)(pre_roll_time >> 8);
 			payload[24] = (byte)pre_roll_time;
 			// break duration
-			int break_duration = Convert.ToInt16(lvLog.breakDuration);
+			Int16 break_duration = Convert.ToInt16(scte104.breakDuration);
 			payload[25] = (byte)(break_duration >> 8);
 			payload[26] = (byte)break_duration;
 			//avail_num //fixed
@@ -178,12 +188,19 @@ namespace scte_104_inserter
 				case "BtnCue_1":
 					try
 					{
-						TbEventID.Text = (Convert.ToInt32(TbEventID.Text) + 4).ToString();
+						_eventID += 4;
+						//TbEventID.Text = (Convert.ToInt32(TbEventID.Text) + 4).ToString();
+						TbEventID.Text = _eventID.ToString();
 						//Clock clk = new Clock();					
 						//lvLog.eventTime = clk.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
 						//log.ipAddress = common.Util.GetLocalIpAddress();
+						//scte104.ipAddress = TbIpaddr.Text;
+						//scte104.port = Convert.ToInt32(TbPort.Text);
+
 						scte104.ipAddress = TbIpaddr.Text;
-						scte104.port = Convert.ToInt32(TbPort.Text);
+						scte104.port = Convert.ToInt16(TbPort.Text);
+						_ip = TbIpaddr.Text;
+						_port = Convert.ToInt16(TbPort.Text);
 
 						RadioButton eventRB = (from element in EventTypePanel.Children.Cast<UIElement>()
 											   where element is RadioButton && (element as RadioButton).IsChecked.Value
@@ -219,72 +236,92 @@ namespace scte_104_inserter
 							//_eventType = content;
 							scte104.eventType = content;
 						}
-						scte104.index = Scte104.GetLastIndex();
-						scte104.eventId = TbEventID.Text;
-						scte104.uniquePid = TbUnqProgramID.Text;
-						scte104.prerollTime = TbPreroolTime.Text;
-						scte104.breakDuration = TbBreakDuration.Text;
+						
+						scte104.eventId = _eventID;
+						scte104.uniquePid = Convert.ToInt16(TbUnqProgramID.Text);
+						scte104.prerollTime = Convert.ToInt16(TbPreroolTime.Text);
+						scte104.breakDuration = Convert.ToInt16(TbBreakDuration.Text);
 					}
 					catch(Exception exFormat)
 					{
 						MessageBox.Show(exFormat.Message, "경고", MessageBoxButton.OK, MessageBoxImage.Warning);
 						return;
 					}
-
-					Byte[] payload = MakePayload(scte104);
-
-					//tcp
-					try
-					{
-						util.Network conn = new util.Network();
-						conn.SetConnection(TbIpaddr.Text, Convert.ToInt32(TbPort.Text));
-						conn.SetTimeout(10);
-						conn.SetPayload(payload);
-						if (conn.Connect())
-						{
-							scte104.status = "Completed";
-						}
-						else
-						{
-							scte104.status = "Error";
-						}
-
-						scte104.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-						Scte104.GetList().Add(scte104);
-						scte104.WriteLvLog();
-
-						Scte104.IncreseIndex();
-
-						LvLog_1.ItemsSource = null;
-						LvLog_1.ItemsSource = Scte104.GetList();
-						LvLog_1.ScrollIntoView(LvLog_1.Items[LvLog_1.Items.Count - 1]);
-
-						JsonConfig jsonConfig = JsonConfig.getInstance();
-						jsonConfig.ipAddr = TbIpaddr.Text;
-						jsonConfig.port = Convert.ToInt32(scte104.port);
-						jsonConfig.eventId = Convert.ToInt32(scte104.eventId);
-						jsonConfig.uniquePid = Convert.ToInt32(scte104.uniquePid);
-						jsonConfig.preRollTime = Convert.ToInt32(scte104.prerollTime);
-						jsonConfig.breakDuration = Convert.ToInt32(scte104.breakDuration);
-
-						String jsonString = JsonSerializer.Serialize(jsonConfig);
-						File.WriteAllText(jsonConfig.configFileName, jsonString);
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show(ex.Message, "경고", MessageBoxButton.OK,MessageBoxImage.Warning);
-					}
 					
+					if (SendToCard(scte104))
+					{
+						scte104.status = "Completed";
+					} else
+					{
+						scte104.status = "Error";
+					}
+					DisplayListView(scte104);
 					break;
 					
 				case "BtnOther":
 					break;                
 			}
 		}
+
+		private void DisplayListView(Scte104 scte104) 
+		{
+			scte104.eventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+			scte104.SetIncrease();			
+			Scte104.GetList().Add(scte104.ShallowCopy());
+			scte104.WriteLvLog();
+
+			Dispatcher.BeginInvoke(
+				System.Windows.Threading.DispatcherPriority.ContextIdle,
+				new Action(
+					delegate
+					{
+						LvLog_1.ItemsSource = null;
+						LvLog_1.ItemsSource = Scte104.GetList();
+						LvLog_1.ScrollIntoView(LvLog_1.Items[LvLog_1.Items.Count - 1]);
+					})
+				);
+
+			JsonConfig jsonConfig = JsonConfig.getInstance();
+			jsonConfig.ipAddr = scte104.ipAddress;
+			jsonConfig.port = scte104.port;
+			jsonConfig.eventId = Convert.ToInt32(scte104.eventId);
+			jsonConfig.uniquePid = Convert.ToInt16(scte104.uniquePid);
+			jsonConfig.preRollTime = Convert.ToInt16(scte104.prerollTime);
+			jsonConfig.breakDuration = Convert.ToInt16(scte104.breakDuration);
+
+			String jsonString = JsonSerializer.Serialize(jsonConfig);
+			File.WriteAllText(jsonConfig.configFileName, jsonString);
+		}
 	  
 		private void ContextMenu_Click(object sender, RoutedEventArgs e)
 		{
 			MessageBox.Show("test");
+		}
+
+		private bool SendToCard(Scte104 scte104)
+		{
+			Byte[] payload = MakePayload(scte104);
+			try
+			{
+				util.Network conn = new util.Network();
+				//conn.SetConnection(TbIpaddr.Text, Convert.ToInt32(TbPort.Text));
+				conn.SetConnection(scte104.ipAddress, scte104.port);
+				conn.SetTimeout(10);
+				conn.SetPayload(payload);
+				if (conn.Send())
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "경고", MessageBoxButton.OK, MessageBoxImage.Warning);
+				return false;
+			}			
 		}
 
 		private void TbPort_TextChanged(object sender, TextChangedEventArgs e)
@@ -417,15 +454,15 @@ namespace scte_104_inserter
 			//MessageBox.Show(String.Format("{0} {1}", scte104.eventId, scte104.index));
 			scte104.insertType = (int)SpliceInsertType.Cancel;
 			scte104.eventType = "Cancel";
-			scte104.prerollTime = "0";
-			scte104.breakDuration = "0";
+			scte104.prerollTime = 0;
+			scte104.breakDuration = 0;
 			Byte[] payload = MakePayload(scte104);
 		
 			//tcp
 			util.Network conn = new util.Network();
 			conn.SetConnection(TbIpaddr.Text, Convert.ToInt32(TbPort.Text));
 			conn.SetPayload(payload);
-			if (conn.Connect())
+			if (conn.Send())
 			{
 				scte104.status = "Completed";
 			}
@@ -446,6 +483,130 @@ namespace scte_104_inserter
 			LvLog_1.ItemsSource = null;
 			Scte104.GetList().Clear();
 			Scte104._index = 0;
+		}
+
+		private void ToggleAuto_Changed(object sender, RoutedEventArgs e)
+		{
+			ToggleButton obj = sender as ToggleButton;
+			switch (obj.IsChecked)
+			{
+				case true:
+					String stateText = "자동 실행 중...";
+					obj.Content = "중단";
+					BtnCue_1.Content = stateText;
+					BtnCue_1.IsEnabled = false;					
+					_ShouldStop = false;
+					LvLog_1.IsEnabled = false;
+					Automation();
+					break;
+				case false:
+					_ShouldStop = true;
+					obj.Content = "프리셋";					
+					break;
+			}			
+		}
+
+		private async void Automation()
+		{
+			var taskAutomation = Task.Run(() => SendAutoAync());
+			bool result = await taskAutomation;
+			if (result)
+			{
+				LvLog_1.IsEnabled = true;
+				BtnCue_1.IsEnabled = true;
+				BtnCue_1.Content = "Cue";
+				MessageBox.Show("프리셋 실행이 중단 되었습니다.", "정보", MessageBoxButton.OK, MessageBoxImage.Information);				
+			}
+		}
+
+		private bool SendAutoAync()
+		{
+			Scte104 scte104;
+			scte104 = new Scte104();
+			List<Scte104> scte104_job = new List<Scte104>();
+
+			scte104.ipAddress = _ip;
+			scte104.port = _port;
+			
+			scte104.eventType = SpliceInsertType.Start_Normal.ToString();
+			scte104.eventId = _eventID;
+			scte104.uniquePid = 1234;
+			scte104.prerollTime = 8000;
+			scte104.breakDuration = 300;
+
+			scte104_job.Add(scte104);
+
+			scte104 = new Scte104();
+			scte104.ipAddress = _ip;
+			scte104.port = _port;			
+			scte104.eventType = SpliceInsertType.End_Normal.ToString();
+			scte104.uniquePid = 3456;
+			scte104.prerollTime = 5000;
+			scte104.breakDuration = 0;
+			scte104_job.Add(scte104);
+
+			scte104 = new Scte104();
+
+			scte104.ipAddress = _ip;
+			scte104.port = _port;			
+			scte104.eventType = SpliceInsertType.Start_Immediate.ToString();
+			scte104.uniquePid = 5678;
+			scte104.prerollTime = 0;
+			scte104.breakDuration = 0;
+			scte104_job.Add(scte104);
+
+			scte104 = new Scte104();
+
+			scte104.ipAddress = _ip;
+			scte104.port = _port;			
+			scte104.eventType = SpliceInsertType.End_Immediate.ToString();
+			scte104.uniquePid = 6789;
+			scte104.prerollTime = 0;
+			scte104.breakDuration = 0;
+			scte104_job.Add(scte104);
+
+			int tick = -1;
+			while (!_ShouldStop)
+			{
+				foreach (Scte104 scte104_elem in scte104_job)
+				{					
+					while (!_ShouldStop)
+					{
+						tick++;
+						if (tick % 10*60*30 != 0)
+						{
+							Thread.Sleep(100);
+							continue;
+						}
+						else
+						{
+							break;
+						}
+					}
+					if ( _ShouldStop)
+					{
+						break;
+					}
+					_eventID += 4;					
+					scte104_elem.eventId = _eventID;
+					if (SendToCard(scte104_elem))
+					{
+						scte104_elem.status = "Completed";						
+					}
+					else
+					{
+						scte104_elem.status = "Error";
+					}
+					DisplayListView(scte104_elem);
+				}
+				tick = 0;
+			}
+			return _ShouldStop;
+		}
+
+		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			_ShouldStop = true;
 		}
 	}
 }

@@ -32,7 +32,7 @@ namespace scte_104_inserter.util
 			_timeout_msec = msec;
 		}
 
-		public bool Connect()
+		public bool Send()
 		{
 			if (String.IsNullOrEmpty(this._serverIpAddr))
 			{
@@ -81,7 +81,7 @@ namespace scte_104_inserter.util
 		{
 			this._serverIpAddr = ip;
 			this._port = port;
-			Connect();
+			Send();
 		}
 	}
 }
