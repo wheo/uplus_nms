@@ -15,7 +15,7 @@ namespace scte_104_inserter
     public partial class App : Application
     {
         Mutex _mtx = null;
-
+#if false
         protected override void OnStartup(StartupEventArgs e)
         {
             String mtxName = "scte_104_inserter";
@@ -40,5 +40,6 @@ namespace scte_104_inserter
             }
             
         }
+#endif
     }
 }

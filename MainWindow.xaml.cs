@@ -188,7 +188,7 @@ namespace scte_104_inserter
 				case "BtnCue_1":
 					try
 					{
-						_eventID += 4;
+						_eventID++;
 						//TbEventID.Text = (Convert.ToInt32(TbEventID.Text) + 4).ToString();
 						TbEventID.Text = _eventID.ToString();
 						//Clock clk = new Clock();					
@@ -529,19 +529,21 @@ namespace scte_104_inserter
 			scte104.port = _port;
 			
 			scte104.eventType = SpliceInsertType.Start_Normal.ToString();
+			scte104.insertType = (int)SpliceInsertType.Start_Normal;
 			scte104.eventId = _eventID;
 			scte104.uniquePid = 1234;
-			scte104.prerollTime = 8000;
-			scte104.breakDuration = 300;
+			scte104.prerollTime = 3000;
+			scte104.breakDuration = 50;
 
 			scte104_job.Add(scte104);
 
 			scte104 = new Scte104();
 			scte104.ipAddress = _ip;
 			scte104.port = _port;			
-			scte104.eventType = SpliceInsertType.End_Normal.ToString();
-			scte104.uniquePid = 3456;
-			scte104.prerollTime = 5000;
+			scte104.eventType = SpliceInsertType.Start_Immediate.ToString();
+			scte104.insertType = (int)SpliceInsertType.Start_Immediate;
+			scte104.uniquePid = 2345;
+			scte104.prerollTime = 0;
 			scte104.breakDuration = 0;
 			scte104_job.Add(scte104);
 
@@ -549,9 +551,10 @@ namespace scte_104_inserter
 
 			scte104.ipAddress = _ip;
 			scte104.port = _port;			
-			scte104.eventType = SpliceInsertType.Start_Immediate.ToString();
-			scte104.uniquePid = 5678;
-			scte104.prerollTime = 0;
+			scte104.eventType = SpliceInsertType.End_Normal.ToString();
+			scte104.insertType = (int)SpliceInsertType.End_Normal;
+			scte104.uniquePid = 3456;
+			scte104.prerollTime = 3000;
 			scte104.breakDuration = 0;
 			scte104_job.Add(scte104);
 
@@ -560,7 +563,29 @@ namespace scte_104_inserter
 			scte104.ipAddress = _ip;
 			scte104.port = _port;			
 			scte104.eventType = SpliceInsertType.End_Immediate.ToString();
-			scte104.uniquePid = 6789;
+			scte104.insertType = (int)SpliceInsertType.End_Immediate;
+			scte104.uniquePid = 4567;
+			scte104.prerollTime = 0;
+			scte104.breakDuration = 0;
+			scte104_job.Add(scte104);
+
+			scte104 = new Scte104();
+
+			scte104.ipAddress = _ip;
+			scte104.port = _port;
+			scte104.eventType = SpliceInsertType.End_Immediate.ToString();
+			scte104.insertType = (int)SpliceInsertType.End_Immediate;
+			scte104.uniquePid = 4567;
+			scte104.prerollTime = 0;
+			scte104.breakDuration = 0;
+			scte104_job.Add(scte104);
+
+			scte104 = new Scte104();
+			scte104.ipAddress = _ip;
+			scte104.port = _port;
+			scte104.eventType = SpliceInsertType.Cancel.ToString();
+			scte104.insertType = (int)SpliceInsertType.Cancel;
+			scte104.uniquePid = 4567;
 			scte104.prerollTime = 0;
 			scte104.breakDuration = 0;
 			scte104_job.Add(scte104);
@@ -569,11 +594,11 @@ namespace scte_104_inserter
 			while (!_ShouldStop)
 			{
 				foreach (Scte104 scte104_elem in scte104_job)
-				{					
+				{
 					while (!_ShouldStop)
 					{
 						tick++;
-						if (tick % 10*60*30 != 0)
+						if (tick % (10 * 60 * 30) != 0)
 						{
 							Thread.Sleep(100);
 							continue;
@@ -583,11 +608,14 @@ namespace scte_104_inserter
 							break;
 						}
 					}
-					if ( _ShouldStop)
+					if (_ShouldStop)
 					{
 						break;
 					}
-					_eventID += 4;					
+					if (scte104_elem.insertType != (int)SpliceInsertType.Cancel)
+					{
+						_eventID++;
+					}
 					scte104_elem.eventId = _eventID;
 					if (SendToCard(scte104_elem))
 					{
