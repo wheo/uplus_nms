@@ -8,8 +8,7 @@ using System.Text.RegularExpressions;
 namespace scte_104_inserter.common
 {
 	class Util
-	{
-		public static String GetLocalIpAddress()
+	{		public static String GetLocalIpAddress()
 		{
 			var host = Dns.GetHostEntry(Dns.GetHostName());
 			foreach(var ip in host.AddressList)
