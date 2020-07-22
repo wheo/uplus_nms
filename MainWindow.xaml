@@ -9,22 +9,22 @@
 
     <Grid VerticalAlignment="Top" HorizontalAlignment="Left" ShowGridLines="False" Height="930" Width="Auto">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100*"/>
-            <ColumnDefinition Width="100*"/>
-            <ColumnDefinition Width="100*"/>
+            <ColumnDefinition Width="100*" />
+            <ColumnDefinition Width="100*" />
+            <ColumnDefinition Width="100*" />
             <!--
-            <ColumnDefinition Width="69*"/>
-            <ColumnDefinition Width="64*"/>
-            <ColumnDefinition Width="62*"/>
-            <ColumnDefinition Width="38*"/>
-            <ColumnDefinition Width="0*"/>
-            <ColumnDefinition Width="70*"/>
-            <ColumnDefinition Width="147*"/>
-            <ColumnDefinition Width="147*"/>
-            <ColumnDefinition Width="155*"/>
-            <ColumnDefinition Width="155*"/>
-            <ColumnDefinition Width="155*"/>
-            <ColumnDefinition Width="155*"/>
+            <ColumnDefinition Width="69*" />
+            <ColumnDefinition Width="64*" />
+            <ColumnDefinition Width="62*" />
+            <ColumnDefinition Width="38*" />
+            <ColumnDefinition Width="0*" />
+            <ColumnDefinition Width="70*" />
+            <ColumnDefinition Width="147*" />
+            <ColumnDefinition Width="147*" />
+            <ColumnDefinition Width="155*" />
+            <ColumnDefinition Width="155*" />
+            <ColumnDefinition Width="155*" />
+            <ColumnDefinition Width="155*" />
             -->
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -43,10 +43,11 @@
         <TextBlock Text="Channel 1" FontSize="24" FontWeight="Bold" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center" Margin="0,0,0,0"></TextBlock>
         <Button x:Name="BtnCue_1" FontSize="48" Click="BtnCue_Click" Content="Cue" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="20,10,10,20" FontWeight="Bold">
             <Button.Effect>
-                <DropShadowEffect/>
+                <DropShadowEffect />
             </Button.Effect>
         </Button>
-        <ToggleButton x:Name="ToggleAuto" Grid.Column="2" Grid.Row="2" Margin="210,50,20,10" Checked="ToggleAuto_Changed" Unchecked="ToggleAuto_Changed">프리셋</ToggleButton>
+        <ToggleButton x:Name="ToggleAuto" Grid.Column="2" Grid.Row="2"  Margin="210,10,20,50" Checked="ToggleAuto_Changed" Unchecked="ToggleAuto_Changed">Case1</ToggleButton>
+        <ToggleButton x:Name="ToggleAuto_Case2" Grid.Column="2" Grid.Row="2" Margin="210,50,20,10" Checked="ToggleAuto_Case2_Unchecked" Unchecked="ToggleAuto_Case2_Unchecked">Case2</ToggleButton>
         <!--
         <ListView x:Name="LvRecv_1" Grid.Row="1" Grid.Column="2" Margin="15,15,15,15">
             <ListView.View>
@@ -54,12 +55,12 @@
                     <GridViewColumn DisplayMemberBinding="{Binding eventTime}">
                         <GridViewColumnHeader>Information
                         </GridViewColumnHeader>
-                    </GridViewColumn>                    
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>
         -->
-        <TextBlock Text="Event Type" FontSize="14" FontWeight="Bold" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock Text="Event Type" FontSize="14" FontWeight="Bold" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" />
         <StackPanel x:Name="EventTypePanel" Grid.Row="2" Grid.Column="1" Margin="5,5,15,5">
             <RadioButton GroupName="rbEventType">Reserve</RadioButton>
             <RadioButton GroupName="rbEventType" IsChecked="True">Start Normal</RadioButton>
@@ -75,16 +76,16 @@
             <ComboBoxItem Content="End Immediate"></ComboBoxItem>
             <ComboBoxItem Content="Cancel"></ComboBoxItem>
         </ComboBox>
-        <TextBlock Text="Server Info" FontSize="14" FontWeight="Bold" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <TextBox x:Name="TbIpaddr" Grid.Row="3" Margin="10,5,10,5" GotFocus="TbIpaddr_GotFocus" Grid.Column="1"/>
-        <TextBox x:Name="TbPort" Grid.Row="3" Grid.Column="2" Margin="10,5,20,5" GotFocus="TbPort_GotFocus" TextChanged="TbPort_TextChanged"/>
-        <TextBlock Text="Current Event ID" FontSize="14" FontWeight="Bold" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <TextBlock x:Name="TbEventID" Grid.Row="4" Grid.Column="1" Margin="10,5,10,5" IsEnabled="False" VerticalAlignment="Center"/>
-        <TextBlock Text="Unique Program ID" FontSize="14" FontWeight="Bold" Grid.Row="5" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock Text="Server Info" FontSize="14" FontWeight="Bold" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" />
+        <TextBox x:Name="TbIpaddr" Grid.Row="3" Margin="10,5,10,5" GotFocus="TbIpaddr_GotFocus" Grid.Column="1" />
+        <TextBox x:Name="TbPort" Grid.Row="3" Grid.Column="2" Margin="10,5,20,5" GotFocus="TbPort_GotFocus" TextChanged="TbPort_TextChanged" />
+        <TextBlock Text="Current Event ID" FontSize="14" FontWeight="Bold" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" />
+        <TextBlock x:Name="TbEventID" Grid.Row="4" Grid.Column="1" Margin="10,5,10,5" IsEnabled="False" VerticalAlignment="Center" />
+        <TextBlock Text="Unique Program ID" FontSize="14" FontWeight="Bold" Grid.Row="5" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" />
         <TextBox x:Name="TbUnqProgramID" Grid.Row="5" Grid.Column="1" Margin="10,5,10,5" GotFocus="TbUnqProgramID_GotFocus" TextChanged="TbUnqProgramID_TextChanged"></TextBox>
-        <TextBlock Text="Preroll Time (1/1000 sec)" FontSize="14" FontWeight="Bold" Grid.Row="6" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock Text="Preroll Time (1/1000 sec)" FontSize="14" FontWeight="Bold" Grid.Row="6" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" />
         <TextBox x:Name="TbPreroolTime" Grid.Row="6" Grid.Column="1" Margin="10,5,10,5" GotFocus="TbPreroolTime_GotFocus" TextChanged="TbPreroolTime_TextChanged"></TextBox>
-        <TextBlock Text="Break duration (1/10 sec)" FontSize="14" FontWeight="Bold" Grid.Row="7" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock Text="Break duration (1/10 sec)" FontSize="14" FontWeight="Bold" Grid.Row="7" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" />
         <TextBox x:Name="TbBreakDuration" Grid.Row="7" Grid.Column="1" Margin="10,5,10,5" GotFocus="TbBreakDuration_GotFocus" TextChanged="TbBreakDuration_TextChanged"></TextBox>
         <Button x:Name="BtnLogClear" Content="Clear" Grid.Column="3" Grid.Row="8" Margin="210,0,20,0" Click="BtnLogClear_Click"></Button>
 
@@ -96,19 +97,19 @@
             </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView AllowsColumnReorder="False" ColumnHeaderToolTip="EventLog Information">
-                    <GridViewColumn Header="idx" Width="35"  DisplayMemberBinding="{Binding index }"/>
+                    <GridViewColumn Header="idx" Width="35"  DisplayMemberBinding="{Binding index }" />
                     <GridViewColumn DisplayMemberBinding="{Binding eventTime}">
                         <GridViewColumnHeader Width="140">EventTime
                         </GridViewColumnHeader>
                     </GridViewColumn>
-                    <GridViewColumn Header="IP address" Width="90"  DisplayMemberBinding="{Binding ipAddress }"/>
-                    <GridViewColumn Header="Port" Width="50" DisplayMemberBinding="{Binding port }"/>
-                    <GridViewColumn Header="EventType" Width="100" DisplayMemberBinding="{Binding eventType}"/>
-                    <GridViewColumn Header="EventID" Width="70" DisplayMemberBinding="{Binding eventId}"/>
-                    <GridViewColumn Header="Unqiue PID" Width="90" DisplayMemberBinding="{Binding uniquePid}"/>
-                    <GridViewColumn Header="Preroll Time" Width="90" DisplayMemberBinding="{Binding prerollTime}"/>
-                    <GridViewColumn Header="Break duration" Width="90" DisplayMemberBinding="{Binding breakDuration}"/>
-                    <GridViewColumn Header="Status" Width="55" DisplayMemberBinding="{Binding status}"/>
+                    <GridViewColumn Header="IP address" Width="90"  DisplayMemberBinding="{Binding ipAddress }" />
+                    <GridViewColumn Header="Port" Width="50" DisplayMemberBinding="{Binding port }" />
+                    <GridViewColumn Header="EventType" Width="100" DisplayMemberBinding="{Binding eventType}" />
+                    <GridViewColumn Header="EventID" Width="70" DisplayMemberBinding="{Binding eventId}" />
+                    <GridViewColumn Header="Unqiue PID" Width="90" DisplayMemberBinding="{Binding uniquePid}" />
+                    <GridViewColumn Header="Preroll Time" Width="90" DisplayMemberBinding="{Binding prerollTime}" />
+                    <GridViewColumn Header="Break duration" Width="90" DisplayMemberBinding="{Binding breakDuration}" />
+                    <GridViewColumn Header="Status" Width="55" DisplayMemberBinding="{Binding status}" />
                     <GridViewColumn Header="Cancel" Width="70">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
@@ -120,10 +121,10 @@
             </ListView.View>
         </ListView>
         <!--
-        <TextBox Grid.Column="2" HorizontalAlignment="Left" Margin="673,267,0,0" Grid.Row="8" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Grid.Column="2" HorizontalAlignment="Left" Margin="673,267,0,0" Grid.Row="8" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" />
         <TextBlock Text="Channel 2" FontSize="24" FontWeight="Bold" Grid.Row="0" Grid.Column="5" Grid.ColumnSpan="4" HorizontalAlignment="Left" Margin="28,0,0,0"></TextBlock>
         <Button x:Name="BtnCue_2" FontSize="20" Click="BtnCue_Click" Content="Start" Grid.Row="1" Grid.Column="5" Margin="15,15,15,15" Visibility="Hidden" Grid.ColumnSpan="2" />
-        
+
         <ListView x:Name="LvRecv_2" Grid.Row="1" Grid.Column="5" Margin="15,15,15,15">
             <ListView.View>
                 <GridView AllowsColumnReorder="True" ColumnHeaderToolTip="Recv Information">
@@ -134,7 +135,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        
+
         <ListView x:Name="LvLog_2" Grid.Row="7" Grid.Column="5" Grid.ColumnSpan="4" Margin="25,0,0,0">
             <ListView.View>
                 <GridView AllowsColumnReorder="True" ColumnHeaderToolTip="EventLog Information">
@@ -145,10 +146,10 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        
-        <TextBlock Text="Channel 3" FontSize="24" FontWeight="Bold" Grid.Row="0" Grid.Column="10" HorizontalAlignment="Center"/>
-        <Button x:Name="BtnCue_3" FontSize="20" Click="BtnCue_Click" Content="Start" Grid.Row="1" Grid.Column="9" Margin="15,15,15,15" Visibility="Hidden"/>
-        
+
+        <TextBlock Text="Channel 3" FontSize="24" FontWeight="Bold" Grid.Row="0" Grid.Column="10" HorizontalAlignment="Center" />
+        <Button x:Name="BtnCue_3" FontSize="20" Click="BtnCue_Click" Content="Start" Grid.Row="1" Grid.Column="9" Margin="15,15,15,15" Visibility="Hidden" />
+
         <ListView x:Name="LvRecv_3" Grid.Row="1" Grid.Column="8" Margin="15,15,15,15">
             <ListView.View>
                 <GridView AllowsColumnReorder="True" ColumnHeaderToolTip="Recv Information">
@@ -159,7 +160,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        
+
         <ListView x:Name="LvLog_3" Grid.Row="7" Grid.Column="7" Grid.ColumnSpan="6" Margin="46,0,155,0">
             <ListView.View>
                 <GridView AllowsColumnReorder="True" ColumnHeaderToolTip="EventLog Information">
@@ -167,14 +168,14 @@
                         <GridViewColumnHeader Width="130">EventTime
                         </GridViewColumnHeader>
                     </GridViewColumn>
-                    <GridViewColumn Header="IP address" Width="130" DisplayMemberBinding="{Binding ipAddress }"/>
-                    <GridViewColumn Header="EventType" Width="130" DisplayMemberBinding="{Binding eventType}"/>
-                    <GridViewColumn Header="Description" Width="Auto" DisplayMemberBinding="{Binding description}"/>
+                    <GridViewColumn Header="IP address" Width="130" DisplayMemberBinding="{Binding ipAddress }" />
+                    <GridViewColumn Header="EventType" Width="130" DisplayMemberBinding="{Binding eventType}" />
+                    <GridViewColumn Header="Description" Width="Auto" DisplayMemberBinding="{Binding description}" />
                 </GridView>
             </ListView.View>
         </ListView>
-        <TextBlock Text="Channel 4" FontSize="24" FontWeight="Bold" Grid.Row="0" Grid.Column="13" HorizontalAlignment="Left" Margin="23,0,0,0"/>
-        <Button x:Name="BtnCue_4" FontSize="20" Click="BtnCue_Click" Content="Start" Grid.Row="1" Grid.Column="12" Margin="15,15,15,15" Visibility="Hidden"/>
+        <TextBlock Text="Channel 4" FontSize="24" FontWeight="Bold" Grid.Row="0" Grid.Column="13" HorizontalAlignment="Left" Margin="23,0,0,0" />
+        <Button x:Name="BtnCue_4" FontSize="20" Click="BtnCue_Click" Content="Start" Grid.Row="1" Grid.Column="12" Margin="15,15,15,15" Visibility="Hidden" />
 
         <ListView x:Name="LvRecv_4" Grid.Row="1" Grid.Column="11" Margin="15,15,15,15">
             <ListView.View>
@@ -186,7 +187,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        
+
         <ListView x:Name="LvLog_4" Grid.Row="7" Grid.Column="11" Grid.ColumnSpan="4" Margin="153,0,0,0">
             <ListView.View>
                 <GridView AllowsColumnReorder="True" ColumnHeaderToolTip="EventLog Information">
@@ -194,12 +195,12 @@
                         <GridViewColumnHeader Width="130">EventTime
                         </GridViewColumnHeader>
                     </GridViewColumn>
-                    <GridViewColumn Header="IP address" Width="130" DisplayMemberBinding="{Binding ipAddress }"/>
-                    <GridViewColumn Header="EventType" Width="130" DisplayMemberBinding="{Binding eventType}"/>
-                    <GridViewColumn Header="Description" Width="Auto" DisplayMemberBinding="{Binding description}"/>
+                    <GridViewColumn Header="IP address" Width="130" DisplayMemberBinding="{Binding ipAddress }" />
+                    <GridViewColumn Header="EventType" Width="130" DisplayMemberBinding="{Binding eventType}" />
+                    <GridViewColumn Header="Description" Width="Auto" DisplayMemberBinding="{Binding description}" />
                 </GridView>
             </ListView.View>
         </ListView>
         -->
     </Grid>
-</Window>    
+</Window>

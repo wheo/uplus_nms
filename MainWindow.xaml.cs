@@ -184,81 +184,86 @@ namespace scte_104_inserter
             String btnName = button.Name;
 
             Scte104 scte104 = new Scte104();
+            string parseTxt = TbIpaddr.Text;
+            string[] words = parseTxt.Split(',');
 
             switch (btnName)
             {
                 case "BtnCue_1":
-                    try
+                    foreach (string ip in words)
                     {
-                        _eventID++;
-                        //TbEventID.Text = (Convert.ToInt32(TbEventID.Text) + 4).ToString();
-                        TbEventID.Text = _eventID.ToString();
-                        //Clock clk = new Clock();
-                        //lvLog.eventTime = clk.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
-                        //log.ipAddress = common.Util.GetLocalIpAddress();
-                        //scte104.ipAddress = TbIpaddr.Text;
-                        //scte104.port = Convert.ToInt32(TbPort.Text);
-
-                        scte104.ipAddress = TbIpaddr.Text;
-                        scte104.port = Convert.ToInt16(TbPort.Text);
-                        _ip = TbIpaddr.Text;
-                        _port = Convert.ToInt16(TbPort.Text);
-
-                        RadioButton eventRB = (from element in EventTypePanel.Children.Cast<UIElement>()
-                                               where element is RadioButton && (element as RadioButton).IsChecked.Value
-                                               select element).SingleOrDefault() as RadioButton;
-                        bool check = eventRB.IsChecked.Value;
-                        String content = eventRB.Content as String;
-                        if (check == true)
+                        try
                         {
-                            if (content == "Reserve")
+                            _eventID++;
+                            //TbEventID.Text = (Convert.ToInt32(TbEventID.Text) + 4).ToString();
+                            TbEventID.Text = _eventID.ToString();
+                            //Clock clk = new Clock();
+                            //lvLog.eventTime = clk.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                            //log.ipAddress = common.Util.GetLocalIpAddress();
+                            //scte104.ipAddress = TbIpaddr.Text;
+                            //scte104.port = Convert.ToInt32(TbPort.Text);
+
+                            scte104.ipAddress = ip;
+                            scte104.port = Convert.ToInt16(TbPort.Text);
+                            _ip = TbIpaddr.Text;
+                            _port = Convert.ToInt16(TbPort.Text);
+
+                            RadioButton eventRB = (from element in EventTypePanel.Children.Cast<UIElement>()
+                                                   where element is RadioButton && (element as RadioButton).IsChecked.Value
+                                                   select element).SingleOrDefault() as RadioButton;
+                            bool check = eventRB.IsChecked.Value;
+                            String content = eventRB.Content as String;
+                            if (check == true)
                             {
-                                scte104.insertType = (int)SpliceInsertType.Reserve;
+                                if (content == "Reserve")
+                                {
+                                    scte104.insertType = (int)SpliceInsertType.Reserve;
+                                }
+                                else if (content == "Start Normal")
+                                {
+                                    scte104.insertType = (int)SpliceInsertType.Start_Normal;
+                                }
+                                else if (content == "Start Immediate")
+                                {
+                                    scte104.insertType = (int)SpliceInsertType.Start_Immediate;
+                                }
+                                else if (content == "End Normal")
+                                {
+                                    scte104.insertType = (int)SpliceInsertType.End_Normal;
+                                }
+                                else if (content == "End Immediate")
+                                {
+                                    scte104.insertType = (int)SpliceInsertType.End_Immediate;
+                                }
+                                else if (content == "Cancel")
+                                {
+                                    scte104.insertType = (int)SpliceInsertType.Cancel;
+                                }
+                                //_eventType = content;
+                                scte104.eventType = content;
                             }
-                            else if (content == "Start Normal")
-                            {
-                                scte104.insertType = (int)SpliceInsertType.Start_Normal;
-                            }
-                            else if (content == "Start Immediate")
-                            {
-                                scte104.insertType = (int)SpliceInsertType.Start_Immediate;
-                            }
-                            else if (content == "End Normal")
-                            {
-                                scte104.insertType = (int)SpliceInsertType.End_Normal;
-                            }
-                            else if (content == "End Immediate")
-                            {
-                                scte104.insertType = (int)SpliceInsertType.End_Immediate;
-                            }
-                            else if (content == "Cancel")
-                            {
-                                scte104.insertType = (int)SpliceInsertType.Cancel;
-                            }
-                            //_eventType = content;
-                            scte104.eventType = content;
+
+                            scte104.eventId = _eventID;
+                            scte104.uniquePid = Convert.ToInt16(TbUnqProgramID.Text);
+                            scte104.prerollTime = Convert.ToInt16(TbPreroolTime.Text);
+                            scte104.breakDuration = Convert.ToInt16(TbBreakDuration.Text);
+                        }
+                        catch (Exception exFormat)
+                        {
+                            MessageBox.Show(exFormat.Message, "경고", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
                         }
 
-                        scte104.eventId = _eventID;
-                        scte104.uniquePid = Convert.ToInt16(TbUnqProgramID.Text);
-                        scte104.prerollTime = Convert.ToInt16(TbPreroolTime.Text);
-                        scte104.breakDuration = Convert.ToInt16(TbBreakDuration.Text);
+                        if (SendToCard(scte104))
+                        {
+                            scte104.status = "Completed";
+                        }
+                        else
+                        {
+                            scte104.status = "Error";
+                        }
+                        DisplayListView(scte104);
                     }
-                    catch (Exception exFormat)
-                    {
-                        MessageBox.Show(exFormat.Message, "경고", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-
-                    if (SendToCard(scte104))
-                    {
-                        scte104.status = "Completed";
-                    }
-                    else
-                    {
-                        scte104.status = "Error";
-                    }
-                    DisplayListView(scte104);
                     break;
 
                 case "BtnOther":
@@ -500,7 +505,30 @@ namespace scte_104_inserter
                     BtnCue_1.IsEnabled = false;
                     _ShouldStop = false;
                     LvLog_1.IsEnabled = false;
+
                     Automation();
+                    break;
+
+                case false:
+                    _ShouldStop = true;
+                    obj.Content = "프리셋";
+                    break;
+            }
+        }
+
+        private void ToggleAuto_Case2_Unchecked(object sender, RoutedEventArgs e)
+        {
+            ToggleButton obj = sender as ToggleButton;
+            switch (obj.IsChecked)
+            {
+                case true:
+                    String stateText = "자동 실행 중...";
+                    obj.Content = "중단";
+                    BtnCue_1.Content = stateText;
+                    BtnCue_1.IsEnabled = false;
+                    _ShouldStop = false;
+                    LvLog_1.IsEnabled = false;
+                    Automation_Case2();
                     break;
 
                 case false:
@@ -512,7 +540,25 @@ namespace scte_104_inserter
 
         private async void Automation()
         {
-            var taskAutomation = Task.Run(() => SendPresetAsync());
+            while (!_ShouldStop)
+            {
+                var taskAutomation = Task.Run(() => SendPresetAsync());
+                bool result = await taskAutomation;
+                /*
+                if (result)
+                {
+                    LvLog_1.IsEnabled = true;
+                    BtnCue_1.IsEnabled = true;
+                    BtnCue_1.Content = "Cue";
+                    MessageBox.Show("프리셋 실행이 중단 되었습니다.", "정보", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                */
+            }
+        }
+
+        private async void Automation_Case2()
+        {
+            var taskAutomation = Task.Run(() => SendPresetAsync2());
             bool result = await taskAutomation;
             if (result)
             {
@@ -535,6 +581,7 @@ namespace scte_104_inserter
             scte104 = new Scte104() { ipAddress = _ip, port = _port, eventType = SpliceInsertType.End_Immediate.ToString(), insertType = (int)SpliceInsertType.End_Immediate, eventId = _eventID, uniquePid = 1234, prerollTime = 0, breakDuration = 0 };
             scte104s.Add(scte104);
 
+            /*
             _eventID++;
             scte104 = new Scte104() { ipAddress = _ip, port = _port, eventType = SpliceInsertType.Start_Immediate.ToString(), insertType = (int)SpliceInsertType.Start_Immediate, eventId = _eventID, uniquePid = 1234, prerollTime = 0, breakDuration = 0 };
             scte104s.Add(scte104);
@@ -564,10 +611,6 @@ namespace scte_104_inserter
             scte104s.Add(scte104);
 
             _eventID++;
-            scte104 = new Scte104() { ipAddress = _ip, port = _port, eventType = SpliceInsertType.End_Immediate.ToString(), insertType = (int)SpliceInsertType.End_Immediate, eventId = _eventID, uniquePid = 1234, prerollTime = 0, breakDuration = 0 };
-            scte104s.Add(scte104);
-
-            _eventID++;
             scte104 = new Scte104() { ipAddress = _ip, port = _port, eventType = SpliceInsertType.Start_Immediate.ToString(), insertType = (int)SpliceInsertType.Start_Immediate, eventId = _eventID, uniquePid = 1234, prerollTime = 0, breakDuration = 0 };
             scte104s.Add(scte104);
 
@@ -575,10 +618,58 @@ namespace scte_104_inserter
             scte104 = new Scte104() { ipAddress = _ip, port = _port, eventType = SpliceInsertType.End_Immediate.ToString(), insertType = (int)SpliceInsertType.End_Immediate, eventId = _eventID, uniquePid = 1234, prerollTime = 0, breakDuration = 0 };
             scte104s.Add(scte104);
 
-            int[] sleepArray = { 10, 100, 30, 100, 100, 100, 1, 1, 10, 10, 10, 0 };
+            _eventID++;
+            scte104 = new Scte104() { ipAddress = _ip, port = _port, eventType = SpliceInsertType.End_Immediate.ToString(), insertType = (int)SpliceInsertType.End_Immediate, eventId = _eventID, uniquePid = 1234, prerollTime = 0, breakDuration = 0 };
+            scte104s.Add(scte104);
+            */
+
+            //int[] sleepArray = { 10, 100, 30, 100, 100, 100, 1, 1, 10, 10, 10, 0 };
 
             //sample
+            int[] sleepArray = { 10, 30 };
             //int[] sleepArray = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 };
+
+            foreach (Scte104 scte104_elem in scte104s)
+            {
+                int index = scte104s.IndexOf(scte104_elem);
+
+                Debug.WriteLine(index, sleepArray[index].ToString());
+
+                if (SendToCard(scte104_elem))
+                {
+                    scte104_elem.status = "Completed";
+                }
+                else
+                {
+                    scte104_elem.status = "Error";
+                }
+                DisplayListView(scte104_elem);
+                Thread.Sleep(sleepArray[index] * 1000);
+            }
+
+            return true;
+        }
+
+        private bool SendPresetAsync2()
+        {
+            List<Scte104> scte104s = new List<Scte104>();
+
+            _eventID++;
+            Scte104 scte104 = new Scte104() { ipAddress = _ip, port = _port, eventType = SpliceInsertType.Start_Normal.ToString(), insertType = (int)SpliceInsertType.Start_Normal, eventId = _eventID, uniquePid = 1234, prerollTime = 10000, breakDuration = 1000 };
+            scte104s.Add(scte104);
+
+            _eventID++;
+            scte104 = new Scte104() { ipAddress = _ip, port = _port, eventType = SpliceInsertType.Start_Immediate.ToString(), insertType = (int)SpliceInsertType.Start_Immediate, eventId = _eventID, uniquePid = 1234, prerollTime = 0, breakDuration = 0 };
+            scte104s.Add(scte104);
+
+            _eventID++;
+            scte104 = new Scte104() { ipAddress = _ip, port = _port, eventType = SpliceInsertType.End_Normal.ToString(), insertType = (int)SpliceInsertType.End_Normal, eventId = _eventID, uniquePid = 1234, prerollTime = 10000, breakDuration = 0 };
+            scte104s.Add(scte104);
+
+            int[] sleepArray = { 120, 10, 0 };
+
+            //sample
+            //int[] sleepArray = { 1, 1, 1 };
 
             foreach (Scte104 scte104_elem in scte104s)
             {
